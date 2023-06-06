@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "287165158800",
+    "project_id": "priyanka-enterprises-eac30",
+    "storage_bucket": "priyanka-enterprises-eac30.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:287165158800:android:567e5ced3e643e4c240f15",
+        "android_client_info": {
+          "package_name": "com.breezefsmpriyankaenterprises"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "287165158800-k5fnrvrv23rbd5a4vuucoikvpkb4dkj5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXy7EXGJLn2sI7u3y4gP10rvS3_9HldZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "287165158800-k5fnrvrv23rbd5a4vuucoikvpkb4dkj5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

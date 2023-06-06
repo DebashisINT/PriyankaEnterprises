@@ -1,0 +1,970 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:wheel="http://schemas.android.com/tools"
+    android:background="@color/color_light_sky"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="@dimen/_5sdp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_5sdp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_frag_shop_dtls_shop_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_25sdp"
+                            android:gravity="center"
+                            android:text="Name"
+                            android:textSize="@dimen/_16sdp"
+                            android:textStyle="bold"
+                            android:textColor="#172DAA"
+                            android:singleLine="true"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_30sdp"
+                            android:orientation="horizontal"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:layout_width="@dimen/_22sdp"
+                                android:layout_height="@dimen/_22sdp"
+                                android:src="@drawable/icon_rupee_gold"/>
+
+                            <Space
+                                android:layout_width="@dimen/_5sdp"
+                                android:layout_height="match_parent"/>
+
+                            <TextView
+                                android:id="@+id/tv_frag_shop_dtls_avg_ord_amt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:text="Amt"
+                                android:textStyle="bold"
+                                android:textColor="@color/completed_green"
+                                android:textSize="@dimen/_16sdp" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/_20sdp"
+                            android:text="Average Order Value"
+                            android:textSize="@dimen/_8sdp"
+                            android:textColor="@color/black"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:singleLine="true"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/_1sdp"
+                            android:layout_marginLeft="@dimen/_3sdp"
+                            android:layout_marginRight="@dimen/_3sdp"
+                            android:layout_marginTop="@dimen/_3sdp"
+                            android:layout_marginBottom="@dimen/_20sdp">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="@dimen/_25sdp"
+                                    android:layout_height="@dimen/_25sdp"
+                                    app:cardCornerRadius="250dp"
+                                    android:layout_gravity="center|top"
+                                    app:cardElevation="@dimen/_5sdp"
+                                    app:cardBackgroundColor="@color/smoke_white"
+                                    android:layout_marginTop="@dimen/_2sdp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/icon_rupee_1"
+                                        android:padding="@dimen/_5sdp"/>
+
+                                </androidx.cardview.widget.CardView>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:minHeight="@dimen/_100sdp"
+                                    android:layout_marginTop="@dimen/_20sdp">
+
+                                    <androidx.cardview.widget.CardView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        app:cardCornerRadius="@dimen/_5sdp"
+                                        app:cardElevation="@dimen/_3sdp"
+                                        android:layout_marginBottom="@dimen/_5sdp"
+                                        app:cardBackgroundColor="@color/smoke_white">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="@dimen/_35sdp"
+                                                android:text="Purchased Product\non Order Value"
+                                                android:gravity="center"
+                                                android:textColor="@color/white"
+                                                android:textSize="@dimen/_9sdp"
+                                                android:textStyle="bold"
+                                                android:background="#083681"/>
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:minHeight="@dimen/_70sdp"
+                                                android:layout_weight="1"
+                                                android:orientation="horizontal"
+                                                android:layout_marginTop="@dimen/_5sdp"
+                                                android:background="@color/smoke_white">
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1"
+                                                    android:orientation="vertical"
+                                                    android:gravity="center|top">
+
+                                                    <TextView
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:minHeight="@dimen/_20sdp"
+                                                        android:text="Most Purchased"
+                                                        android:textSize="@dimen/_7sdp"
+                                                        android:textColor="@color/black"
+                                                        android:gravity="center"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_val_max_name"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:gravity="center"
+                                                        android:text="Product Name"
+                                                        android:textColor="@color/completed_green"
+                                                        android:textSize="@dimen/_8sdp"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_val_max_val"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:textColor="@color/completed_green"
+                                                        android:text="Amt"
+                                                        android:textSize="@dimen/_8sdp"
+                                                        android:gravity="center"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                </LinearLayout>
+
+                                                <View
+                                                    android:layout_width="@dimen/_1sdp"
+                                                    android:layout_height="match_parent"
+                                                    android:background="@color/gray_50"/>
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1"
+                                                    android:orientation="vertical"
+                                                    android:gravity="center|top">
+
+                                                    <TextView
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:minHeight="@dimen/_20sdp"
+                                                        android:text="Least Purchased"
+                                                        android:textSize="@dimen/_7sdp"
+                                                        android:textColor="@color/black"
+                                                        android:gravity="center"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_val_min_name"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:gravity="center"
+                                                        android:text="Product Name"
+                                                        android:textColor="@color/red"
+                                                        android:textSize="@dimen/_8sdp"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee" />
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_val_min_val"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:textColor="@color/red"
+                                                        android:text="Amt"
+                                                        android:textSize="@dimen/_8sdp"
+                                                        android:gravity="center"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                </LinearLayout>
+
+                                            </LinearLayout>
+
+                                        </LinearLayout>
+
+                                    </androidx.cardview.widget.CardView>
+
+                                </LinearLayout>
+
+                            </FrameLayout>
+
+                            <Space
+                                android:layout_width="@dimen/_3sdp"
+                                android:layout_height="match_parent"/>
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="@dimen/_25sdp"
+                                    android:layout_height="@dimen/_25sdp"
+                                    app:cardCornerRadius="250dp"
+                                    android:layout_gravity="center|top"
+                                    app:cardElevation="@dimen/_5sdp"
+                                    app:cardBackgroundColor="@color/smoke_white"
+                                    android:layout_marginTop="@dimen/_2sdp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/icon_product_1"
+                                        android:padding="@dimen/_5sdp"/>
+
+                                </androidx.cardview.widget.CardView>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:minHeight="@dimen/_100sdp"
+                                    android:layout_marginTop="@dimen/_20sdp">
+
+                                    <androidx.cardview.widget.CardView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        app:cardCornerRadius="@dimen/_5sdp"
+                                        app:cardElevation="@dimen/_3sdp"
+                                        android:layout_marginBottom="@dimen/_5sdp"
+                                        app:cardBackgroundColor="@color/smoke_white">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="@dimen/_35sdp"
+                                                android:text="Purchased Product\non Order Quantity"
+                                                android:gravity="center"
+                                                android:textColor="@color/white"
+                                                android:textSize="@dimen/_9sdp"
+                                                android:textStyle="bold"
+                                                android:background="#5420c0"/>
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:minHeight="@dimen/_70sdp"
+                                                android:layout_weight="1"
+                                                android:orientation="horizontal"
+                                                android:layout_marginTop="@dimen/_5sdp"
+                                                android:background="@color/smoke_white">
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1"
+                                                    android:orientation="vertical"
+                                                    android:gravity="center|top">
+
+                                                    <TextView
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:minHeight="@dimen/_20sdp"
+                                                        android:text="Most Purchased"
+                                                        android:textSize="@dimen/_7sdp"
+                                                        android:textColor="@color/black"
+                                                        android:gravity="center"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_qty_max_name"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:gravity="center"
+                                                        android:text="Product Name"
+                                                        android:textColor="@color/completed_green"
+                                                        android:textSize="@dimen/_8sdp"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_qty_max_amt"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:textColor="@color/completed_green"
+                                                        android:text="Amt"
+                                                        android:textSize="@dimen/_8sdp"
+                                                        android:gravity="center"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                </LinearLayout>
+
+                                                <View
+                                                    android:layout_width="@dimen/_1sdp"
+                                                    android:layout_height="match_parent"
+                                                    android:background="@color/gray_50"/>
+
+                                                <LinearLayout
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="match_parent"
+                                                    android:layout_weight="1"
+                                                    android:orientation="vertical"
+                                                    android:gravity="center|top">
+
+                                                    <TextView
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="wrap_content"
+                                                        android:minHeight="@dimen/_20sdp"
+                                                        android:text="Least Purchased"
+                                                        android:textSize="@dimen/_7sdp"
+                                                        android:textColor="@color/black"
+                                                        android:gravity="center"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_qty_min_name"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:gravity="center"
+                                                        android:text="Product Name"
+                                                        android:textColor="@color/red"
+                                                        android:textSize="@dimen/_8sdp"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                    <TextView
+                                                        android:id="@+id/tv_product_ord_by_qty_min_amt"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="@dimen/_25sdp"
+                                                        android:textColor="@color/red"
+                                                        android:text="Amt"
+                                                        android:textSize="@dimen/_8sdp"
+                                                        android:gravity="center"
+
+                                                        android:scrollbars="vertical"
+                                                        android:scrollHorizontally="true"
+                                                        android:singleLine="true"
+                                                        android:marqueeRepeatLimit ="marquee_forever"
+                                                        android:focusable="true"
+                                                        android:focusableInTouchMode="true"
+                                                        android:ellipsize="marquee"/>
+
+                                                </LinearLayout>
+
+                                            </LinearLayout>
+
+                                        </LinearLayout>
+
+                                    </androidx.cardview.widget.CardView>
+
+                                </LinearLayout>
+
+                            </FrameLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_5sdp"
+                    app:cardBackgroundColor="@color/white"
+                    android:layout_marginTop="@dimen/_10sdp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_5sdp"
+                        android:layout_marginTop="@dimen/_10sdp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_55sdp"
+                            android:orientation="horizontal">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1">
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="@dimen/_25sdp"
+                                    android:layout_height="@dimen/_25sdp"
+                                    app:cardCornerRadius="250dp"
+                                    android:layout_gravity="center_vertical"
+                                    app:cardElevation="@dimen/_5sdp"
+                                    app:cardBackgroundColor="@color/smoke_white"
+                                    android:layout_marginLeft="@dimen/_2sdp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/ic_history_calendar_icon"
+                                        android:padding="@dimen/_5sdp"/>
+
+                                </androidx.cardview.widget.CardView>
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    app:cardElevation="@dimen/_3sdp"
+                                    app:cardCornerRadius="@dimen/_5sdp"
+                                    app:cardBackgroundColor="#700b45"
+                                    android:layout_marginStart="@dimen/_10sdp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:orientation="vertical"
+                                        android:paddingStart="@dimen/_22sdp"
+                                        android:paddingEnd="@dimen/_5sdp"
+                                        android:padding="@dimen/_3sdp"
+                                        android:background="@drawable/shape_analysis_1">
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Last VIsit"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_10sdp"
+                                            android:gravity="center|start"/>
+
+                                        <TextView
+                                            android:id="@+id/tv_frag_shop_dtls_ma_last_visit_date"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Date"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_8sdp"
+                                            android:gravity="center|start"/>
+
+                                        <TextView
+                                            android:id="@+id/tv_frag_shop_dtls_ma_last_visit_time"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Time"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_8sdp"
+                                            android:gravity="center|start"/>
+
+                                    </LinearLayout>
+
+                                </androidx.cardview.widget.CardView>
+
+                            </FrameLayout>
+
+                            <Space
+                                android:layout_width="@dimen/_5sdp"
+                                android:layout_height="match_parent"/>
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1">
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="@dimen/_30sdp"
+                                    android:layout_height="@dimen/_30sdp"
+                                    app:cardCornerRadius="250dp"
+                                    android:layout_gravity="center_vertical|end"
+                                    app:cardElevation="@dimen/_5sdp"
+                                    app:cardBackgroundColor="@color/smoke_white"
+                                    android:layout_marginRight="@dimen/_2sdp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/icon_sand_timer"
+                                        android:padding="@dimen/_5sdp"/>
+
+                                </androidx.cardview.widget.CardView>
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    app:cardElevation="@dimen/_3sdp"
+                                    app:cardCornerRadius="@dimen/_5sdp"
+                                    app:cardBackgroundColor="#009c95"
+                                    android:layout_marginEnd="@dimen/_10sdp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:orientation="vertical"
+                                        android:paddingStart="@dimen/_5sdp"
+                                        android:paddingEnd="@dimen/_30sdp"
+                                        android:padding="@dimen/_3sdp"
+                                        android:background="@drawable/shape_analysis_2">
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Average Spent Time"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_10sdp"
+                                            android:gravity="center|end"/>
+
+                                        <TextView
+                                            android:id="@+id/tv_frag_shop_dtls_ma_avg_visit_time"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Time"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_8sdp"
+                                            android:gravity="center|end"/>
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:text="Per Visit"
+                                            android:textColor="@color/white"
+                                            android:textSize="@dimen/_8sdp"
+                                            android:gravity="center|end"/>
+
+                                    </LinearLayout>
+
+                                </androidx.cardview.widget.CardView>
+
+                            </FrameLayout>
+
+                        </LinearLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/_150sdp"
+                                android:layout_marginTop="10dp"
+                                android:layout_marginBottom="10dp"
+                                android:layout_marginLeft="@dimen/_2sdp"
+                                android:layout_marginRight="@dimen/_2sdp">
+
+                                <fragment
+                                    android:id="@+id/map_frag_shop_dtls_ma"
+                                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_gravity="center" />
+
+                            </LinearLayout>
+
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="@dimen/_110sdp"
+                                android:layout_height="@dimen/_30sdp"
+                                android:layout_gravity="top|end"
+                                android:layout_marginTop="@dimen/_10sdp"
+                                android:layout_marginEnd="@dimen/_5sdp"
+                                app:cardCornerRadius="@dimen/_10sdp"
+                                android:elevation="@dimen/_5sdp"
+                                app:cardBackgroundColor="#393caf">
+
+                                <TextView
+                                    android:id="@+id/tv_frag_shop_dtls_ma_dist"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:text="Distance : "
+                                    android:gravity="center"
+                                    android:textColor="@color/white"
+                                    android:paddingStart="@dimen/_10sdp"
+                                    android:paddingEnd="@dimen/_10sdp"
+                                    android:textSize="@dimen/_9sdp"/>
+
+                            </androidx.cardview.widget.CardView>
+
+                            <androidx.cardview.widget.CardView
+                                android:id="@+id/iv_frag_shop_dtls_ma_map_direction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|start"
+                                android:layout_marginBottom="@dimen/_10sdp"
+                                android:layout_marginStart="@dimen/_5sdp"
+                                app:cardCornerRadius="@dimen/_10sdp"
+                                android:elevation="@dimen/_5sdp"
+                                app:cardBackgroundColor="#393caf">
+
+                                <ImageView
+                                    android:layout_width="@dimen/_20sdp"
+                                    android:layout_height="@dimen/_20sdp"
+                                    android:background="@drawable/ic_current_location_image"
+                                    android:backgroundTint="@color/white"
+                                    android:rotation="90"
+                                    android:layout_margin="@dimen/_2sdp"/>
+
+                            </androidx.cardview.widget.CardView>
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_5sdp"
+                    app:cardBackgroundColor="@color/white"
+                    android:layout_marginTop="@dimen/_10sdp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_20sdp"
+                            android:gravity="center"
+                            android:text="Suggestive Product to Push"
+                            android:textSize="@dimen/_14sdp"
+                            android:textColor="@color/date_bg_selected_color"
+                            android:textStyle="bold"
+                            android:layout_marginTop="@dimen/_10sdp" />
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="@dimen/_10sdp"
+                            app:cardElevation="@dimen/_5sdp"
+                            app:cardBackgroundColor="@color/smoke_white"
+                            android:layout_marginTop="@dimen/_10sdp"
+                            app:cardUseCompatPadding="true">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:background="@color/smoke_white">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_30sdp"
+                                    android:orientation="horizontal"
+                                    android:background="@drawable/shape_analysis_3">
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        android:text="Product Name"
+                                        android:textSize="@dimen/_9sdp"
+                                        android:gravity="center|bottom"
+                                        android:textColor="@color/white"
+                                        android:paddingBottom="@dimen/_3sdp"/>
+
+                                    <View
+                                        android:layout_width="@dimen/_1sdp"
+                                        android:layout_height="match_parent"
+                                        android:background="@color/white_50"/>
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1.1"
+                                        android:text="Suggestive Rate"
+                                        android:textSize="@dimen/_9sdp"
+                                        android:gravity="center|bottom"
+                                        android:textColor="@color/white"
+                                        android:paddingBottom="@dimen/_3sdp"/>
+
+                                    <View
+                                        android:layout_width="@dimen/_1sdp"
+                                        android:layout_height="match_parent"
+                                        android:background="@color/white_50"/>
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1.1"
+                                        android:text="Suggestive Qty"
+                                        android:textSize="@dimen/_9sdp"
+                                        android:gravity="center|bottom"
+                                        android:textColor="@color/white"
+                                        android:paddingBottom="@dimen/_3sdp"/>
+
+                                </LinearLayout>
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/rv_ma_suggest_product"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_150sdp"
+                                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                    android:layout_marginBottom="@dimen/_3sdp"/>
+
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_5sdp"
+                    app:cardBackgroundColor="@color/white"
+                    android:layout_marginTop="@dimen/_10sdp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_20sdp"
+                            android:gravity="center"
+                            android:text="Suggestive Product to Cross Sell"
+                            android:textSize="@dimen/_14sdp"
+                            android:textColor="@color/date_bg_selected_color"
+                            android:textStyle="bold"
+                            android:layout_marginTop="@dimen/_10sdp"/>
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="@dimen/_2sdp"
+                            app:cardElevation="@dimen/_5sdp"
+                            app:cardBackgroundColor="@color/smoke_white"
+                            android:layout_marginTop="@dimen/_10sdp"
+                            app:cardUseCompatPadding="true">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_80sdp"
+                                    android:orientation="horizontal">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="center">
+
+                                        <ImageView
+                                            android:layout_width="@dimen/_30sdp"
+                                            android:layout_height="@dimen/_35sdp"
+                                            android:background="@drawable/icon_prod_marker"
+                                            android:layout_gravity="center"/>
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="@dimen/_65sdp"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:gravity="center">
+
+                                            <ImageView
+                                                android:layout_width="@dimen/_35sdp"
+                                                android:layout_height="@dimen/_35sdp"
+                                                android:background="@drawable/icon_suggestive_rate"
+                                                android:layout_gravity="center"/>
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="@dimen/_30sdp"
+                                            android:text="Suggestive Rate"
+                                            android:textSize="@dimen/_9sdp"
+                                            android:gravity="center"
+                                            android:textColor="@color/white"
+                                            android:paddingBottom="@dimen/_3sdp"
+                                            android:background="#ee5859"/>
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="@dimen/_65sdp"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:layout_weight="1"
+                                            android:gravity="center">
+
+                                            <ImageView
+                                                android:layout_width="@dimen/_35sdp"
+                                                android:layout_height="@dimen/_35sdp"
+                                                android:background="@drawable/icon_suggestive_qty"
+                                                android:layout_gravity="center"/>
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="@dimen/_30sdp"
+                                            android:text="Suggestive Qty"
+                                            android:textSize="@dimen/_9sdp"
+                                            android:gravity="center"
+                                            android:textColor="@color/white"
+                                            android:paddingBottom="@dimen/_3sdp"
+                                            android:background="#1571bc"/>
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/rv_ma_cross_product"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_150sdp"
+                                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                    android:layout_marginBottom="@dimen/_3sdp"/>
+
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+            <com.pnikosis.materialishprogress.ProgressWheel
+                android:id="@+id/progress_wheel_frag_shop_dtls_ma"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/_290sdp"
+                wheel:matProg_barColor="@color/default_text_color"
+                wheel:matProg_progressIndeterminate="true" />
+
+        </FrameLayout>
+
+
+
+    </ScrollView>
+
+
+
+</LinearLayout>
