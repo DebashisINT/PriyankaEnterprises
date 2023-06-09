@@ -382,7 +382,6 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
         //Pref.isExpenseFeatureAvailable = false
         Timber.d("dash_frag ends ${AppUtils.getCurrentDateTime()} ${Pref.current_latitude} ${Pref.current_latitude}")
         //AppDatabase.getDBInstance()!!.userLocationDataDao().updateUnknownLocationTest(AppUtils.getCurrentDateForShopActi(),"Unknown",false)
-        Pref.IsMenuShowAIMarketAssistant =true
         if (addToStack) {
             mTransaction.add(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
             mTransaction.addToBackStack(mFragType.toString()).commitAllowingStateLoss()
