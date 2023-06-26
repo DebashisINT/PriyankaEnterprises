@@ -84,6 +84,7 @@ class MonitorService:Service() {
     fun serviceStatusActionable() {
 
         Timber.d("MonitorService running : Time :" + AppUtils.getCurrentDateTime())
+        return
 
         Log.e("abc", "startabc")
         monitorBroadcast = MonitorBroadcast()
