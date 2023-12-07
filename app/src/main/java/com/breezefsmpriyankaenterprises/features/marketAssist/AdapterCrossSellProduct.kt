@@ -6,12 +6,14 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.breezefsmpriyankaenterprises.R
-import kotlinx.android.synthetic.main.row_cross_sell_product.view.iv_row_pro_cross_name
+import kotlinx.android.synthetic.main.row_cross_sell_product.view.ll_row_pro_cross_root
 import kotlinx.android.synthetic.main.row_cross_sell_product.view.tv_row_pro_cross_name
 import kotlinx.android.synthetic.main.row_cross_sell_product.view.tv_row_pro_cross_qty
 import kotlinx.android.synthetic.main.row_cross_sell_product.view.tv_row_pro_cross_rate
+import kotlinx.android.synthetic.main.row_suggest_product.view.ll_row_pro_sugg_root
 
 class AdapterCrossSellProduct(var mContext: Context, var mList:ArrayList<SuggestiveProductFinal>):
     RecyclerView.Adapter<AdapterCrossSellProduct.CrossSellProductViewHolder>(){
@@ -33,19 +35,27 @@ class AdapterCrossSellProduct(var mContext: Context, var mList:ArrayList<Suggest
         @SuppressLint("ResourceType")
         fun bindItems(){
             itemView.tv_row_pro_cross_name.text = mList.get(adapterPosition).product_name
-            itemView.tv_row_pro_cross_rate.text = mList.get(adapterPosition).suggestiveOrdRate
-            itemView.tv_row_pro_cross_qty.text = mList.get(adapterPosition).suggestiveOrdQty
+            itemView.tv_row_pro_cross_rate.text = mList.get(adapterPosition).suggestiveOrdRate+" or above."
+            itemView.tv_row_pro_cross_qty.text = mList.get(adapterPosition).suggestiveOrdQty+" or above."
 
-            itemView.tv_row_pro_cross_name.isSelected = true
+            if(adapterPosition%2 == 0){
+                itemView.ll_row_pro_cross_root.setBackgroundColor(ContextCompat.getColor(mContext, R.color.white))
+            }else{
+                itemView.ll_row_pro_cross_root.setBackgroundColor(ContextCompat.getColor(mContext, R.color.lightest_light_new_gray))
+            }
+
+            //itemView.tv_row_pro_cross_name.isSelected = true
 
             /*if(adapterPosition == 0){
-                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_custom_green_light))
+                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_1))
             }else if(adapterPosition == 1 ){
-                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_blue_light_dark))
+                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_2))
             }else if(adapterPosition == 2 ){
-                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(Color.parseColor("#c6880f")))
+                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_3))
             }else if(adapterPosition == 3 ){
-                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(Color.parseColor("#c6880f")))
+                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_4))
+            }else if(adapterPosition == 4 ){
+                itemView.iv_row_pro_cross_name.setBackgroundTintList(mContext.getResources().getColorStateList(R.color.color_5))
             }*/
         }
     }

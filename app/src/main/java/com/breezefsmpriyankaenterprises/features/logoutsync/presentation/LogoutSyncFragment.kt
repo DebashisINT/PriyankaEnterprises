@@ -1,9 +1,12 @@
 package com.breezefsmpriyankaenterprises.features.logoutsync.presentation
 
 import android.app.ActivityManager
+import android.app.Dialog
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.*
 import androidx.annotation.RequiresApi
@@ -20,6 +23,9 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.FileProvider
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
 import com.breezefsmpriyankaenterprises.CustomConstants
 
 
@@ -89,12 +95,14 @@ import com.breezefsmpriyankaenterprises.features.viewAllOrder.model.AddOrderInpu
 import com.breezefsmpriyankaenterprises.mappackage.SendBrod
 import com.breezefsmpriyankaenterprises.widgets.AppCustomTextView
 import com.breezefsmpriyankaenterprises.MonitorService
+import com.breezefsmpriyankaenterprises.MySingleton
 import com.breezefsmpriyankaenterprises.features.addshop.model.*
 import com.breezefsmpriyankaenterprises.features.addshop.model.assigntopplist.AddShopUploadImg
 import com.breezefsmpriyankaenterprises.features.addshop.presentation.ShopExtraContactReq
 import com.breezefsmpriyankaenterprises.features.addshop.presentation.multiContactRequestData
 import com.breezefsmpriyankaenterprises.features.login.api.LoginRepositoryProvider
 import com.breezefsmpriyankaenterprises.features.login.model.GetConcurrentUserResponse
+import com.breezefsmpriyankaenterprises.features.login.model.WhatsappApiData
 import com.breezefsmpriyankaenterprises.features.performance.model.Gps_status_list
 import com.breezefsmpriyankaenterprises.features.performance.model.UpdateGpsInputListParamsModel
 import com.breezefsmpriyankaenterprises.features.returnsOrder.ReturnProductList
@@ -104,9 +112,15 @@ import com.breezefsmpriyankaenterprises.features.viewAllOrder.orderNew.NewOrderS
 import com.breezefsmpriyankaenterprises.features.viewAllOrder.orderNew.NeworderScrCartFragment
 import com.facebook.stetho.common.LogUtil
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.gson.JsonParser
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_login_new.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import timber.log.Timber
@@ -261,7 +275,6 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
         val view = inflater.inflate(R.layout.fragment_logout_sync, container, false)
         //Pref.DayEndMarked=true
         initView(view)
-
 
         if ((mContext as DashboardActivity).isForceLogout) {
             val notificationManager = mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -930,6 +943,7 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
     private fun checkToCallAddShopApi() {
 
+        Timber.d("logout check else ${Pref.IsAutoLogoutFromBatteryCheck} ${AppUtils.isOnline(mContext)}")
         stopAnimation(addCompetetorStockSyncImg)
         addCompetetorStockSyncImg.visibility=View.GONE
         addCompetetorStockTickImg.visibility=View.VISIBLE
@@ -947,10 +961,10 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
             } else {
                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.no_internet))
-                }
+            }
         } else {
             checkToCallSyncOrder()
-            }
+        }
     }
 
     private fun initView(view: View) {
@@ -1352,6 +1366,14 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
         addShopData.isShopDuplicate=mAddShopDBModelEntity.isShopDuplicate
 
         addShopData.purpose=mAddShopDBModelEntity.purpose
+//start AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+        try {
+            addShopData.FSSAILicNo = mAddShopDBModelEntity.FSSAILicNo
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            addShopData.FSSAILicNo = ""
+        }
+//end AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
 
         addShopData.GSTN_Number=mAddShopDBModelEntity.gstN_Number
         addShopData.ShopOwner_PAN=mAddShopDBModelEntity.shopOwner_PAN
@@ -2071,6 +2093,21 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
             mAddShopDBModelEntity.shopOwner_PAN = ""
             }
 
+        try{
+            if(mAddShopDBModelEntity.isUpdateAddressFromShopMaster!!){
+                addShopData.isUpdateAddressFromShopMaster = true
+            }else{
+                addShopData.isUpdateAddressFromShopMaster = false
+            }
+            Timber.d("tag_update addr ${mAddShopDBModelEntity.isUpdateAddressFromShopMaster} ${addShopData.isUpdateAddressFromShopMaster}")
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            addShopData.isUpdateAddressFromShopMaster = false
+            Timber.d("tag_update addr ex ${addShopData.isUpdateAddressFromShopMaster}")
+        }
+
+
+
 
         Timber.d("=====SyncEditShop Input Params (Logout sync)======")
         Timber.d("shop id====> " + addShopData.shop_id)
@@ -2407,12 +2444,21 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
         addOrder.latitude = order.order_lat
         addOrder.longitude = order.order_long
 
-        if (order.scheme_amount != null) {
-            addOrder.scheme_amount = order.scheme_amount
-        }
-        else {
-            addOrder.scheme_amount = ""
+        try{
+            if (order.scheme_amount != null) {
+                if(order.scheme_amount.equals("")){
+                    addOrder.scheme_amount = "0"
+                }else{
+                    addOrder.scheme_amount = order.scheme_amount
+                }
             }
+            else {
+                addOrder.scheme_amount = "0"
+            }
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            addOrder.scheme_amount = "0"
+        }
 
         if (order.remarks != null) {
             addOrder.remarks = order.remarks
@@ -3711,6 +3757,9 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
                 if(shopDurationApiReqForNewShop.shop_list!!.size>0){
                     uploadNewShopVisit(shopDurationApiReqForNewShop,newShopList,shopDataList as ArrayList<ShopDurationRequestData>)
+                    if(!revisitStatusList.isEmpty()){
+                        callRevisitStatusUploadApi(revisitStatusList!!)
+                    }
                 }
                 Handler().postDelayed(Runnable {
                     if(shopDurationApiReqForOldShop.shop_list!!.size>0){
@@ -5946,7 +5995,7 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
                 } else {
                     Handler().postDelayed(Runnable {
                         tv_logout.isEnabled = true
-                        if(Pref.DayEndMarked){
+                        if(Pref.DayEndMarked || Pref.IsAutoLogoutFromBatteryCheck){
                             performLogout()
                         }
 
@@ -6247,7 +6296,7 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
                 } else {
                     Handler().postDelayed(Runnable {
                         tv_logout.isEnabled = true
-                        if(Pref.DayEndMarked){
+                        if(Pref.DayEndMarked || Pref.IsAutoLogoutFromBatteryCheck){
                             performLogout()
                         }
 
@@ -6591,7 +6640,86 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
     }
     //===========================================================ADD ACTIVITY========================================================
 
-
+    val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    fun syncWhatsappStatus(){
+        if(Pref.IsShowWhatsAppIconforVisit || Pref.IsAutomatedWhatsAppSendforRevisit){
+            scope.launch {
+                println("tag_supr begin")
+                var whatsL = AppDatabase.getDBInstance()?.visitRevisitWhatsappStatusDao()!!.getUnsyncList() as ArrayList<VisitRevisitWhatsappStatus>
+                for(i in 0..whatsL.size-1){
+                    val stringRequest: StringRequest = object : StringRequest(
+                        Request.Method.POST, "https://theultimate.io/WAApi/report",
+                        Response.Listener<String?> { response ->
+                            var resp = JsonParser.parseString(response)
+                            var statusCode = resp.asJsonObject.get("code").toString()
+                            var data =  resp.asJsonObject.get("data")
+                            try{
+                                var f1 = data.asJsonObject
+                                var f2 = f1.asJsonObject.get("records")
+                                var f3 =f2.asJsonArray
+                                var status = f3.get(0).asJsonObject.get("status").toString().drop(1).dropLast(1)
+                                var cause = f3.get(0).asJsonObject.get("cause").toString().drop(1).dropLast(1)
+                                if(statusCode.equals("200",ignoreCase = true)){
+                                    if(status.equals("DELIVERED")){
+                                        var msg = if(cause.contains("Read By User",ignoreCase = true)) "Read by User" else "Sent Successfully"
+                                        AppDatabase.getDBInstance()?.visitRevisitWhatsappStatusDao()!!.updateWhatsStatus(true,msg,whatsL.get(i).sl_no,whatsL.get(i).transactionId)
+                                    }else{
+                                        AppDatabase.getDBInstance()?.visitRevisitWhatsappStatusDao()!!.updateWhatsStatus(false,status.toString(),whatsL.get(i).sl_no,whatsL.get(i).transactionId)
+                                    }
+                                }
+                            }catch (ex:Exception){
+                                ex.printStackTrace()
+                            }
+                        },
+                        Response.ErrorListener { error ->
+                            Timber.d("error in whatsapp report api ${error.message}")
+                        })
+                    {
+                        override fun getParams(): Map<String, String>? {
+                            val params: MutableMap<String, String> = HashMap()
+                            params.put("userId", "eurobondwa")
+                            params.put("password", "Eurobondwa@123")
+                            params.put("wabaNumber", "917888488891")
+                            params.put("fromDate", "${AppUtils.getCurrentDateForShopActi()}")
+                            params.put("toDate", "${AppUtils.getCurrentDateForShopActi()}")
+                            params.put("uuId", whatsL.get(i).transactionId.toString())
+                            return params
+                        }
+                    }
+                    MySingleton.getInstance(mContext.applicationContext)!!.addToRequestQueue(stringRequest)
+                    delay(450)
+                }
+            }.invokeOnCompletion {
+                println("tag_supr finish")
+                var obL =AppDatabase.getDBInstance()?.visitRevisitWhatsappStatusDao()!!.getUnsyncList() as ArrayList<VisitRevisitWhatsappStatus>
+                if(obL.size!= 0){
+                    var ob = WhatsappApiData(Pref.user_id.toString(),obL)
+                    val repository = EditShopRepoProvider.provideEditShopWithoutImageRepository()
+                    BaseActivity.compositeDisposable.add(
+                        repository.whatsAppStatusSync(ob)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeOn(Schedulers.io())
+                            .subscribe({ result ->
+                                val addShopResult = result as BaseResponse
+                                if(addShopResult.status.equals("200")){
+                                    AppDatabase.getDBInstance()?.visitRevisitWhatsappStatusDao()!!.updateWhatsStatusUpload()
+                                    calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                }else{
+                                    calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                }
+                            }, { error ->
+                                error.printStackTrace()
+                                calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                            })
+                    )
+                }else{
+                    calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                }
+            }
+        }else{
+            calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+        }
+    }
 
     //===============================================Logout===========================================================================//
     private fun calllogoutApi(user_id: String, session_id: String) {
@@ -6677,31 +6805,15 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
                             if (logoutResponse.status == NetworkConstant.SUCCESS) {
                                 (mContext as DashboardActivity).isChangedPassword = false
                                 Pref.tempDistance = "0.0"
-
-                                /*if ((mContext as DashboardActivity).isForceLogout)
-                                    Pref.prevOrderCollectionCheckTimeStamp = 0L*/
-
                                 if (unSyncedList != null && unSyncedList.isNotEmpty()) {
                                     for (i in unSyncedList.indices) {
                                         AppDatabase.getDBInstance()!!.userLocationDataDao().updateIsUploaded(true, unSyncedList[i].locationId)
                                     }
                                 }
-
                                 (mContext as DashboardActivity).syncShopListAndLogout()
-                            } else if (logoutResponse.status == NetworkConstant.SESSION_MISMATCH) {
-                                //clearData()
-                                (mContext as DashboardActivity).isChangedPassword = false
-                                startActivity(Intent(mContext, LoginActivity::class.java))
-                                (mContext as DashboardActivity).overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-                                (mContext as DashboardActivity).finishAffinity()
                             } else {
                                 progress_wheel.stopSpinning()
                                 (mContext as DashboardActivity).showSnackMessage("Failed to logout")
-
-                                if ((mContext as DashboardActivity).isChangedPassword) {
-                                    (mContext as DashboardActivity).isChangedPassword = false
-                                    (mContext as DashboardActivity).onBackPressed()
-                                }
                             }
                             BaseActivity.isApiInitiated = false
 
@@ -6885,7 +6997,9 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
 
     private fun performLogout() {
-        if(Pref.DayEndMarked){
+        if(Pref.DayEndMarked || Pref.IsAutoLogoutFromBatteryCheck){
+            Pref.IsAutoLogoutFromBatteryCheck=false
+            println("service_battert_tag logout ${Pref.IsAutoLogoutFromBatteryCheck}")
             if (Pref.isShowLogoutReason && !TextUtils.isEmpty(Pref.approvedOutTime)) {
                 val currentTimeInLong = AppUtils.convertTimeWithMeredianToLong(AppUtils.getCurrentTimeWithMeredian())
                 val approvedOutTimeInLong = AppUtils.convertTimeWithMeredianToLong(Pref.approvedOutTime)
@@ -7385,7 +7499,8 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
     private fun callAppInfoApi() {
         if (!Pref.isAppInfoEnable) {
-            calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+            //calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+            syncWhatsappStatus()
             return
         }
 
@@ -7393,7 +7508,8 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
         if (unSyncData == null || unSyncData.isEmpty()) {
             Timber.e("=======Appinfo list is empty (Logout Sync)=========")
-            calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+            //calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+            syncWhatsappStatus()
             return
         }
 
@@ -7442,13 +7558,15 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
 
                                     uiThread {
                                         progress_wheel.stopSpinning()
-                                        calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                        //calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                        syncWhatsappStatus()
                                     }
                                 }
                             }
                             else {
                                 progress_wheel.stopSpinning()
-                                calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                //calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                                syncWhatsappStatus()
                             }
 
                         }, { error ->
@@ -7456,7 +7574,8 @@ class LogoutSyncFragment : BaseFragment(), View.OnClickListener {
                             Timber.d("App Info : ERROR : " + error.localizedMessage)
                             error.printStackTrace()
                             progress_wheel.stopSpinning()
-                            calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                            //calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+                            syncWhatsappStatus()
                         })
         )
     }

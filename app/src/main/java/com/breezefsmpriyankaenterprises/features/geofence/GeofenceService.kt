@@ -17,6 +17,8 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import timber.log.Timber
 
 /**
@@ -83,9 +85,10 @@ class GeofenceService : Service(), OnCompleteListener<Void> {
         }
 
 
-        for (i in 0 until newList.size) {
+        doAsync {
+            for (i in 0 until newList.size) {
 
-            mGeofenceList.add(Geofence.Builder()
+                mGeofenceList.add(Geofence.Builder()
                     // Set the request ID of the geofence. This is a string to identify this
                     // geofence.
                     .setRequestId(newList[i].shop_id)
@@ -94,11 +97,9 @@ class GeofenceService : Service(), OnCompleteListener<Void> {
                     .setLoiteringDelay(1000 * 60)
 
                     // Set the circular region of this geofence.
-                    .setCircularRegion(
-                            newList[i].shopLat,
-                            newList[i].shopLong,
-                            //Pref.gpsAccuracy.toFloat()
-                            mRadious
+                    .setCircularRegion(newList[i].shopLat, newList[i].shopLong,
+                        //Pref.gpsAccuracy.toFloat()
+                        mRadious
                     )
 
                     // Set the expiration duration of the geofence. This geofence gets automatically
@@ -112,9 +113,12 @@ class GeofenceService : Service(), OnCompleteListener<Void> {
 
                     // Create the geofence.
                     .build())
+            }
+            uiThread {
+                Timber.d("addGeofences addGeofences")
+                addGeofences()
+            }
         }
-
-        addGeofences()
     }
 
     /**
@@ -186,7 +190,11 @@ class GeofenceService : Service(), OnCompleteListener<Void> {
     private fun removeGeofence() {
         Timber.d("removeGeofence : ")
         Pref.isGeoFenceAdded = false
-        mGeofencingClient.removeGeofences(getGeofencePendingIntent())
+        try{
+            mGeofencingClient.removeGeofences(getGeofencePendingIntent())
+        }catch (ex:Exception){
+            Timber.d("removeGeofence : ${ex.message}")
+        }
     }
 
 }

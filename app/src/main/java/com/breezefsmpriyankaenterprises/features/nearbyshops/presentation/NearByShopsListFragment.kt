@@ -104,6 +104,8 @@ import kotlin.collections.ArrayList
 // 5.0 NearByShopsListFragment AppV 4.0.6 Suman 03-02-2023 updateModifiedShop + sendModifiedShopList  for shop update mantis 25624
 // 6.0 NearByShopsListFragment AppV 4.0.7 saheli 20-02-2023 voice search mantis 0025683
 // 7.0 NearByShopsListFragment AppV 4.0.7 saheli 21-02-2023 voice search mantis 0025683
+// 8.0 NearByShopsListFragment AppV 4.0.7 saheli 08-06-2023 0026307 mantis  Play store console report issues
+// 9.0 NearByShopsListFragment AppV 4.0.7 Suman 26-06-2023 0026307 mantis  26437
 class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
 
     private lateinit var mNearByShopsListAdapter: NearByShopsListAdapter
@@ -164,7 +166,7 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         mContext = context
-
+        println("fab_check onAttach")
         try {
             beatId = arguments?.getString("beatId").toString()
         }
@@ -176,6 +178,7 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         val view = inflater.inflate(R.layout.fragment_nearby_shops, container, false)
+        println("fab_check onCreateView")
         initView(view)
 //        if (AppDatabase.getDBInstance()!!.marketingCategoryMasterDao().getAll().isEmpty())
 //            callMarketingCategoryListApi()
@@ -353,7 +356,6 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-
     }
 
     override fun updateUI(any: Any) {
@@ -602,6 +604,16 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
 
             shopObj.purpose=shop_list[i].purpose
 
+            //start AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+            try {
+                shopObj.FSSAILicNo = shop_list[i].FSSAILicNo
+            }catch (ex:Exception){
+                ex.printStackTrace()
+                shopObj.FSSAILicNo = ""
+            }
+//end AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+
+
             /*GSTIN & PAN NUMBER*/
             shopObj.gstN_Number=shop_list[i].GSTN_Number
             shopObj.shopOwner_PAN=shop_list[i].ShopOwner_PAN
@@ -818,6 +830,23 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
         setListVisiBility()
         tv_shop_count.text = "Total " + Pref.shopText + "(s): " + list.size
 
+
+        //Begin 9.0 NearByShopsListFragment AppV 4.0.7 Suman 26-06-2023 0026307 mantis  26437
+        try{
+            //sortAlphabatically()
+            floating_fab.close(true)
+            programFab1.colorNormal = mContext.resources.getColor(R.color.delivery_status_green)
+            programFab2.colorNormal = mContext.resources.getColor(R.color.colorAccent)
+            programFab3.colorNormal = mContext.resources.getColor(R.color.colorAccent)
+            programFab1.setImageResource(R.drawable.ic_tick_float_icon)
+            programFab2.setImageResource(R.drawable.ic_tick_float_icon_gray)
+            programFab3.setImageResource(R.drawable.ic_tick_float_icon_gray)
+            println("fab_check ok")
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            println("fab_check err ${ex.message}")
+        }
+        //ENd of 9.0 NearByShopsListFragment AppV 4.0.7 Suman 26-06-2023 0026307 mantis  26437
 
         mNearByShopsListAdapter = NearByShopsListAdapter(this.mContext!!, list, object : NearByShopsListClickListener {
 
@@ -1468,6 +1497,14 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
                     addShopData.isShopDuplicate=mAddShopDBModelEntity.isShopDuplicate
 
                     addShopData.purpose=mAddShopDBModelEntity.purpose
+//start AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+                    try {
+                        addShopData.FSSAILicNo = mAddShopDBModelEntity.FSSAILicNo
+                    }catch (ex:Exception){
+                        ex.printStackTrace()
+                        addShopData.FSSAILicNo = ""
+                    }
+//end AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
 
                     addShopData.GSTN_Number=mAddShopDBModelEntity.gstN_Number
                     addShopData.ShopOwner_PAN=mAddShopDBModelEntity.shopOwner_PAN
@@ -1952,6 +1989,14 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
         addShopData.isShopDuplicate=mAddShopDBModelEntity.isShopDuplicate
 
         addShopData.purpose=mAddShopDBModelEntity.purpose
+//start AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+        try {
+            addShopData.FSSAILicNo = mAddShopDBModelEntity.FSSAILicNo
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            addShopData.FSSAILicNo = ""
+        }
+//end AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
 
         addShopData.GSTN_Number=mAddShopDBModelEntity.gstN_Number
         addShopData.ShopOwner_PAN=mAddShopDBModelEntity.shopOwner_PAN
@@ -2726,6 +2771,11 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
         addShopReqData.GSTN_Number = addShopData.gstN_Number
         addShopReqData.ShopOwner_PAN = addShopData.shopOwner_PAN
 
+        //begin Suman 12-10-2023 mantis id 26874
+        if(isAddressUpdated){
+            addShopReqData.isUpdateAddressFromShopMaster = true
+        }
+        //end Suman 12-10-2023 mantis id 26874
 
         callEditShopApi(addShopReqData, addShopData.shopImageLocalPath, false, isAddressUpdated, addShopData.doc_degree)
     }
@@ -3027,6 +3077,11 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
 
                         shop.actual_address = address_
                         shop.isEditUploaded = 0
+
+                        // begin Suman 12-10-2023 mantis id 26874
+                        shop.isUpdateAddressFromShopMaster = true
+                        // end Suman 12-10-2023 mantis id 26874
+
                         AppDatabase.getDBInstance()?.addShopEntryDao()?.updateAddShop(shop)
 
                         convertToReqAndApiCall(shop, true)
@@ -3433,8 +3488,16 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
 
     private fun getAssignedPPListApi(shop_id: String?, isFromInitView: Boolean) {
 
-        if (!isFromInitView)
-            (mContext as DashboardActivity).showSnackMessage(getString(R.string.wait_msg), 1000)
+        // start 8.0 NearByShopsListFragment AppV 4.0.7 saheli 08-06-2023 0026307 mantis  Play store console report issues
+        try{
+            if (!isFromInitView)
+                (mContext as DashboardActivity).showSnackMessage(getString(R.string.wait_msg), 1000)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // end 8.0 NearByShopsListFragment AppV 4.0.7 saheli 08-06-2023 0026307 mantis  Play store console report issues
+
 
         val repository = AssignToPPListRepoProvider.provideAssignPPListRepository()
         progress_wheel.spin()
@@ -3854,6 +3917,14 @@ class NearByShopsListFragment : BaseFragment(), View.OnClickListener {
         addShopData.isShopDuplicate=mAddShopDBModelEntity.isShopDuplicate
 
         addShopData.purpose=mAddShopDBModelEntity.purpose
+//start AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
+        try {
+            addShopData.FSSAILicNo = mAddShopDBModelEntity.FSSAILicNo
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            addShopData.FSSAILicNo = ""
+        }
+//end AppV 4.2.2 tufan    20/09/2023 FSSAI Lic No Implementation 26813
 
         addShopData.GSTN_Number=mAddShopDBModelEntity.gstN_Number
         addShopData.ShopOwner_PAN=mAddShopDBModelEntity.shopOwner_PAN

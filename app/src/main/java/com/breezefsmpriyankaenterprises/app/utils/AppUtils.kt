@@ -25,8 +25,6 @@ import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.provider.Settings
 import android.provider.Settings.SettingNotFoundException
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import android.telephony.TelephonyManager
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -36,13 +34,14 @@ import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.breezefsmpriyankaenterprises.R
 import com.breezefsmpriyankaenterprises.app.AppDatabase
 import com.breezefsmpriyankaenterprises.app.Pref
 import com.breezefsmpriyankaenterprises.features.location.LocationWizard
 import com.breezefsmpriyankaenterprises.features.login.model.LoginStateListDataModel
 import com.breezefsmpriyankaenterprises.features.login.model.productlistmodel.ProductRateDataModel
-
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.gson.Gson
@@ -50,6 +49,8 @@ import com.google.gson.reflect.TypeToken
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
+import okhttp3.CacheControl
+import okhttp3.Interceptor
 import org.apache.commons.lang3.StringEscapeUtils
 import timber.log.Timber
 import java.io.*
@@ -65,11 +66,13 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-
+import java.time.Duration
 
 /**
  * Created by Pratishruti on 08-11-2017.
  */
+// Revision History
+// 1.0  LoginActivity 0026316	mantis saheli v 4.1.6 09-06-2023
 class AppUtils {
     companion object {
         var contx:Context?= null
@@ -116,6 +119,7 @@ class AppUtils {
         //var tempDistance = 0.0
         //var totalS2SDistance = 0.0  // Shop to shop distance
         //var mGoogleAPIClient: GoogleApiClient? = null
+        var reasontagforGPS = ""
 
         private var mLastClickTime: Long = 0
 
@@ -1350,6 +1354,70 @@ class AppUtils {
             }
         }
 
+        /**
+         * Purpose: internet checking cache clear
+         */
+        // 1.0  LoginActivity start 0026316	mantis saheli v 4.1.6 09-06-2023
+        fun isOnlinecacheClear(mContext: Context): Boolean {
+            try {
+                var cacheInterceptor: Interceptor = object : Interceptor {
+                    @Throws(IOException::class)
+                    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+                        val cacheBuilder = CacheControl.Builder()
+                        cacheBuilder.maxAge(0, TimeUnit.SECONDS)
+                        cacheBuilder.maxStale(365, TimeUnit.DAYS)
+                        val cacheControl:CacheControl = cacheBuilder.build()
+                        var request: okhttp3.Request = chain.request()
+                        if (isOnline(mContext)) {
+                            request = request.newBuilder()
+                                .cacheControl(cacheControl)
+                                .build()
+                        }
+                        val originalResponse: okhttp3.Response = chain.proceed(request)
+                        return if (isOnline(mContext)) {
+                            val maxAge = 60 // read from cache
+                            originalResponse.newBuilder()
+                                .header("Cache-Control", "public, max-age=$maxAge")
+                                .build()
+                        } else {
+                            val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
+                            originalResponse.newBuilder()
+                                .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
+                                .build()
+                        }
+                    }
+                }
+            }catch (ex:Exception){
+                return false
+            }
+            return true
+        }
+
+        fun deleteCache(context: Context) {
+            try {
+                val dir = context.cacheDir
+                deleteDir(dir)
+            } catch (e: java.lang.Exception) {
+            }
+        }
+        fun deleteDir(dir: File?): Boolean {
+            return if (dir != null && dir.isDirectory) {
+                val children = dir.list()
+                for (i in children.indices) {
+                    val success = deleteDir(File(dir, children[i]))
+                    if (!success) {
+                        return false
+                    }
+                }
+                dir.delete()
+            } else if (dir != null && dir.isFile) {
+                dir.delete()
+            } else {
+                false
+            }
+        }
+        // 1.0  LoginActivity end 0026316	mantis saheli v 4.1.6 09-06-2023
+
         fun endShopDuration(shopId: String,mContext: Context) {
             val shopActiList = AppDatabase.getDBInstance()!!.shopActivityDao().getShopForDay(shopId, AppUtils.getCurrentDateForShopActi())
             if (shopActiList.isEmpty())
@@ -1435,8 +1503,8 @@ class AppUtils {
                     -> return "3G"
                     TelephonyManager.NETWORK_TYPE_LTE
                     -> return "4G"
-                    /*TelephonyManager.NETWORK_TYPE_NR
-                    -> return "5G"*/
+                    TelephonyManager.NETWORK_TYPE_NR
+                    -> return "5G"
                     else -> return "Unknown"
                 }
             }catch (ex:Exception){
@@ -1781,6 +1849,16 @@ class AppUtils {
         fun getCurrentISODateAtt(): String {
             val df = SimpleDateFormat("yyyy-MM-dd'T'00:00:00", Locale.ENGLISH)
             return df.format(Date()).toString()
+        }
+
+        fun geTimeDuration( startTime: String , endTime: String ): String { // "2023-09-07T15:29:24" "2023-09-07T15:20:24"
+            val timestamp1 = LocalDateTime.parse(startTime)
+            val timestamp2 = LocalDateTime.parse(endTime)
+
+            val duration = Duration.between(timestamp1, timestamp2).abs()
+            val minutes = duration.toMinutes().toString()
+            return  minutes
+
         }
 
         fun getCurrentDateForShopActi(): String {
@@ -2957,6 +3035,48 @@ class AppUtils {
             return formattedDate.toString()
         }
 
+        fun addORsubMinInTime(minUnit : Int,timeIn24:String):String{ // input like 14:20
+            val myTime = timeIn24
+            val dff = SimpleDateFormat("HH:mm")
+            val dd: Date = dff.parse(myTime)
+            val cal = Calendar.getInstance()
+            cal.setTime(dd)
+            cal.add(Calendar.MINUTE, minUnit)
+            val newTime = String.format(cal.time.toString())
+            return newTime.split(" ").get(3)
+        }
+
+        fun avgTime(timeString:String):String{
+            return try{
+                val timeInHHmmss = timeString
+                val split = timeInHHmmss.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                var sum = 0L
+
+                val sdf = SimpleDateFormat("HH:mm:ss")
+                for (i in split.indices) {
+                    sum += sdf.parse(split[i]).time
+                }
+                val avgDate = Date(sum / split.size)
+                sdf.format(avgDate)
+            }catch (ex:Exception){
+                ""
+            }
+        }
+
+        fun changeDateFormat1(date:String):String{ // convert 14-Nov-22 to dd/MM/yyyy
+            val format1 = SimpleDateFormat("dd/MM/yyyy")
+            val format2 = SimpleDateFormat("dd-MMM-yy")
+            val date = format2.parse(date)
+            return format1.format(date)
+        }
+
+        fun changeDateFormat2(date:String):String{ // convert 14-Nov-22 to yyyy/MM/dd
+            val format1 = SimpleDateFormat("yyyy/MM/dd")
+            val format2 = SimpleDateFormat("dd-MMM-yy")
+            val date = format2.parse(date)
+            return format1.format(date)
+        }
+
         /*fun getDurationFromOnlineVideoLink(link: String) : String {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(link, HashMap<String, String>())
@@ -2980,6 +3100,47 @@ class AppUtils {
             }
         }*/
              var isFromOrderToshowSchema = false
+
+        fun getDateDiff(fromD: String,toD: String): String {
+            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+            var  date1:Date = simpleDateFormat.parse(fromD)
+            var  date2:Date= simpleDateFormat.parse(toD)
+            val calendar1 = Calendar.getInstance()
+            calendar1.time = date1
+            val calendar2 = Calendar.getInstance()
+            calendar2.time = date2
+            val differenceInMillis = calendar2.timeInMillis - calendar1.timeInMillis
+            val differenceInDays = differenceInMillis / (24 * 60 * 60 * 1000)
+            return differenceInDays.toString()
+        }
+
+        fun getPrevXMonthDate(prevMonthCount:Int):String{
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.MONTH, -prevMonthCount)
+            var agoDate = calendar.time
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+            return dateFormat.format(agoDate).toString()
+        }
+
+        fun getDaysAgo(daysAgo: Int): Date {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_YEAR, -daysAgo)
+
+            return calendar.time
+        }
+
+        fun getDiffDateTime(startTime:String,endTime:String):Int{
+            var date1 :Date = SimpleDateFormat("yy-mm-dd hh:mm:ss").parse(startTime)
+            var date2 :Date = SimpleDateFormat("yy-mm-dd hh:mm:ss").parse(endTime)
+            val diff: Long = date2.getTime() - date1.getTime()
+            val seconds = diff / 1000
+            val minutes = seconds / 60
+            val hours = minutes / 60
+            val days = hours / 24
+
+            return minutes.toInt()
+        }
+
     }
 
 }

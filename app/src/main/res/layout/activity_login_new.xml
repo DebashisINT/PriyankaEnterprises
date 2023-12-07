@@ -46,8 +46,8 @@
 
                 <ImageView
                     android:id="@+id/logo_new"
-                    android:layout_width="@dimen/_165sdp"
-                    android:layout_height="@dimen/_68sdp"
+                    android:layout_width="@dimen/_185sdp"
+                    android:layout_height="@dimen/_78sdp"
                     android:src="@drawable/breezelogo"
                     android:layout_marginTop="@dimen/_30sdp"
                     android:layout_centerHorizontal="true"
@@ -67,8 +67,8 @@
                     android:textColor="#287fb2"
                     android:text="@string/name_filed_managenent_system"
                     android:textSize="@dimen/_12sdp"
-                    android:visibility="gone"
-                    android:layout_marginTop="@dimen/_10sdp"/>
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:visibility="gone"/>
 
                 <com.breezefsmpriyankaenterprises.widgets.AppCustomTextView
                     android:id="@+id/app_title_TV"
@@ -144,6 +144,8 @@
                                                     android:background="@color/transparent"
                                                     android:inputType="textEmailAddress"
                                                     android:singleLine="true"
+                                                    android:focusable="true"
+                                                    android:cursorVisible="true"
                                                     android:paddingStart="@dimen/_10sdp"
                                                     android:textSize="@dimen/_13sdp"
                                                     app:theme="@style/EvoEditTextTheme" />
@@ -197,7 +199,8 @@
                                                     android:paddingStart="@dimen/_10sdp"
                                                     android:singleLine="true"
                                                     android:textSize="@dimen/_13sdp"
-                                                    app:theme="@style/EvoEditTextTheme" />
+                                                    app:theme="@style/EvoEditTextTheme"
+                                                    android:textCursorDrawable="@drawable/custom_cursor"/>
 
                                             </com.google.android.material.textfield.TextInputLayout>
 

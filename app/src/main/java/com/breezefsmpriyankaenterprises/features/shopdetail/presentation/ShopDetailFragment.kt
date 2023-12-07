@@ -560,7 +560,10 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
 
         if (Pref.isCustomerFeatureEnable) {
             ll_customer_view.visibility = View.VISIBLE
-            owner_name_RL.visibility = View.GONE
+            //Begin Puja 16.11.23 mantis-0026997 //
+          //  owner_name_RL.visibility = View.GONE
+            owner_name_RL.visibility = View.VISIBLE
+            //End Puja 16.11.23 mantis-0026997 //
             owner_contact_no_label_TV.text = getString(R.string.contact_number)
             owner_email_label_TV.text = getString(R.string.only_email)
         } else {
@@ -4733,6 +4736,20 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
 
     private var permissionUtils: PermissionUtils? = null
     private fun initPermissionCheck() {
+
+        //begin mantis id 26741 Storage permission updation Suman 22-08-2023
+        var permissionList = arrayOf<String>( Manifest.permission.CAMERA)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            permissionList += Manifest.permission.READ_MEDIA_IMAGES
+            permissionList += Manifest.permission.READ_MEDIA_AUDIO
+            permissionList += Manifest.permission.READ_MEDIA_VIDEO
+        }else{
+            permissionList += Manifest.permission.WRITE_EXTERNAL_STORAGE
+            permissionList += Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+//end mantis id 26741 Storage permission updation Suman 22-08-2023
+
         permissionUtils = PermissionUtils(mContext as Activity, object : PermissionUtils.OnPermissionListener {
             override fun onPermissionGranted() {
                 if (isDocDegree == 1)
@@ -4744,8 +4761,8 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
             override fun onPermissionNotGranted() {
                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.accept_permission))
             }
-
-        }, arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+// mantis id 26741 Storage permission updation Suman 22-08-2023
+        },permissionList)// arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
     }
 
     fun onRequestPermission(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {

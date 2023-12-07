@@ -8,10 +8,13 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.location.GnssStatus
 import android.location.GpsStatus
 import android.location.Location
@@ -19,6 +22,7 @@ import android.location.LocationManager
 import android.os.*
 import android.text.TextUtils
 import android.util.Log
+import android.view.View
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
@@ -30,6 +34,7 @@ import com.breezefsmpriyankaenterprises.R
 import com.breezefsmpriyankaenterprises.app.*
 import com.breezefsmpriyankaenterprises.app.Pref.tempDistance
 import com.breezefsmpriyankaenterprises.app.domain.*
+import com.breezefsmpriyankaenterprises.app.types.FragType
 import com.breezefsmpriyankaenterprises.app.utils.AppUtils
 import com.breezefsmpriyankaenterprises.app.utils.AppUtils.Companion.getDateTimeFromTimeStamp
 import com.breezefsmpriyankaenterprises.app.utils.AppUtils.Companion.isLocationActivityUpdating
@@ -41,6 +46,8 @@ import com.breezefsmpriyankaenterprises.base.presentation.BaseActivity.Companion
 import com.breezefsmpriyankaenterprises.base.presentation.BaseActivity.Companion.isShopActivityUpdating
 import com.breezefsmpriyankaenterprises.features.addshop.api.AddShopRepositoryProvider
 import com.breezefsmpriyankaenterprises.features.addshop.model.AddShopRequestCompetetorImg
+import com.breezefsmpriyankaenterprises.features.addshop.model.AddShopRequestData
+import com.breezefsmpriyankaenterprises.features.addshop.model.AddShopResponse
 import com.breezefsmpriyankaenterprises.features.dashboard.presentation.DashboardActivity
 import com.breezefsmpriyankaenterprises.features.dashboard.presentation.SystemEventReceiver
 import com.breezefsmpriyankaenterprises.features.dashboard.presentation.api.ShopVisitImageUploadRepoProvider
@@ -53,9 +60,12 @@ import com.breezefsmpriyankaenterprises.features.location.ideallocapi.IdealLocat
 import com.breezefsmpriyankaenterprises.features.location.model.*
 import com.breezefsmpriyankaenterprises.features.location.shopRevisitStatus.ShopRevisitStatusRepositoryProvider
 import com.breezefsmpriyankaenterprises.features.location.shopdurationapi.ShopDurationRepositoryProvider
+import com.breezefsmpriyankaenterprises.features.login.presentation.LoginActivity
 import com.breezefsmpriyankaenterprises.features.orderhistory.api.LocationUpdateRepositoryProviders
 import com.breezefsmpriyankaenterprises.features.orderhistory.model.LocationData
 import com.breezefsmpriyankaenterprises.features.orderhistory.model.LocationUpdateRequest
+import com.breezefsmpriyankaenterprises.features.shopdetail.presentation.api.EditShopRepoProvider
+import com.breezefsmpriyankaenterprises.widgets.AppCustomTextView
 
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
@@ -94,13 +104,14 @@ import kotlin.collections.ArrayList
 // Rev 9.0 LocationFUzedService AppV 4.0.8 Suman    24/04/2023 battery_net_data optimization 0025903
 // 10.0 SystemEventReceiver AppV 4.1.3 Saheli    26/04/2023 mantis 0025932 Log file update in service classes for GPS on off time.
 // 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
-
+// 12.0 LocationFuzedService v 4.1.6 Tufan 11/07/2023 mantis 26546 revisit sync time
 class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,
         OnCompleteListener<Void>, GpsStatus.Listener {
     override fun onComplete(p0: Task<Void>) {
 
     }
 
+    //var mGoogleSignApiClient: GoogleSignInClient = null
 
     var mGoogleAPIClient: GoogleApiClient? = null
     private var mLocationRequest: LocationRequest? = null
@@ -310,6 +321,8 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                 notificationChannel.lightColor = applicationContext.getColor(R.color.colorPrimary)
                 notificationChannel.enableVibration(true)
                 notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+
+               // println("puja")
                 notificationManager.createNotificationChannel(notificationChannel)
 
                 val notification = NotificationCompat.Builder(this)
@@ -326,8 +339,13 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                 //notificationManager.notify(randInt, notificationBuilder.build());
 
 //                XLog.d("LocationFuzedService startForeground1 : Time :" + AppUtils.getCurrentDateTime())
-                Timber.d("LocationFuzedService startForeground1 : Time :" + AppUtils.getCurrentDateTime())
-                startForeground(AppConstant.FOREGROUND_SERVICE, notification)
+                try{
+                    Timber.d("LocationFuzedService startForeground1 : Time :" + AppUtils.getCurrentDateTime())
+                    startForeground(AppConstant.FOREGROUND_SERVICE, notification)
+                    Timber.d("LocationFuzedService after startForeground1 : Time :" + AppUtils.getCurrentDateTime())
+                }catch (ex:Exception){
+                    Timber.d("LocationFuzedService startForeground1 ex ${ex.localizedMessage} ${ex.message} : Time :" + AppUtils.getCurrentDateTime())
+                }
 
             }
             else {
@@ -341,101 +359,103 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                         .setContentIntent(pendingIntent)
                         .setOngoing(true)
                         .build()
-
                 //notificationManager.notify(randInt, notificationBuilder.build())
-               // XLog.d("LocationFuzedService startForeground2 : Time :" + AppUtils.getCurrentDateTime())
-                Timber.d("LocationFuzedService startForeground2 : Time :" + AppUtils.getCurrentDateTime())
+                Timber.d("LocationFuzedService else startForeground2 : Time :" + AppUtils.getCurrentDateTime())
                 startForeground(AppConstant.FOREGROUND_SERVICE, notification)
+                Timber.d("LocationFuzedService else startForeground2 : Time :" + AppUtils.getCurrentDateTime())
             }
 
-            gpsReceiver = GpsReceiver(object : LocationCallBack {
-                override fun onLocationTriggered(status: Boolean) {
-                    //Location state changed
-                    Timber.d("LocationFuzedService onLocationTriggered " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
-                    if (gpsStatus != status) {
-                        gpsStatus = status
-//                        Log.e(TAG, "GPS STATUS: " + status)
-                        //XLog.d("GPS STATUS : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
-                        Timber.d("GPS STATUS : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
+            try{
+                Timber.d("GpsReceiver registration begin : Time :" + AppUtils.getCurrentDateTime())
+                gpsReceiver = GpsReceiver(object : LocationCallBack {
+                    override fun onLocationTriggered(status: Boolean) {
+                        //Location state changed
+                        Timber.d("LocationFuzedService onLocationTriggered " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
+                        if (gpsStatus != status) {
+                            gpsStatus = status
+                            Timber.d("GPS STATUS : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
 
-
-                        if (!gpsStatus) {
-                            //XLog.d("LocationFuzedService GPS turn off : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
-                            Timber.d("LocationFuzedService GPS turn off : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
-                            sendGPSOffBroadcast()
-                            if (!FTStorageUtils.isMyServiceRunning(LocationFuzedService::class.java, this@LocationFuzedService)) {
-                                serviceStatusActionable()
-                            }
-                        } else {
-                            if (monitorNotiID != 0) {
-                                Pref.isLocFuzedBroadPlaying = false
-                                if (MonitorBroadcast.player != null) {
-                                    try{
-                                        MonitorBroadcast.player.stop()
-                                        MonitorBroadcast.player = null
-                                    }catch (ex:Exception){
-                                        //Begin 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
-                                        ex.printStackTrace()
-                                        MonitorBroadcast.player = null
-                                        //End 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
-                                    }
-                                    try{
-                                        MonitorBroadcast.vibrator.cancel()
-                                        MonitorBroadcast.vibrator = null
-                                    }catch (ex:Exception){
-                                        ex.printStackTrace()
-                                        //Begin 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
-                                        MonitorBroadcast.vibrator = null
-                                        //End 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
-                                    }
+                            if (!gpsStatus) {
+                                Timber.d("LocationFuzedService GPS turn off : " + status + "," + " Time :" + AppUtils.getCurrentDateTime())
+                                sendGPSOffBroadcast()
+                                if (!FTStorageUtils.isMyServiceRunning(LocationFuzedService::class.java, this@LocationFuzedService)) {
+                                    serviceStatusActionable()
                                 }
-                                var notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                                notificationManager.cancel(monitorNotiID)
+                            } else {
+                                if (monitorNotiID != 0) {
+                                    Pref.isLocFuzedBroadPlaying = false
+                                    if (MonitorBroadcast.player != null) {
+                                        try{
+                                            MonitorBroadcast.player.stop()
+                                            MonitorBroadcast.player = null
+                                        }catch (ex:Exception){
+                                            //Begin 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
+                                            ex.printStackTrace()
+                                            MonitorBroadcast.player = null
+                                            //End 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
+                                        }
+                                        try{
+                                            MonitorBroadcast.vibrator.cancel()
+                                            MonitorBroadcast.vibrator = null
+                                        }catch (ex:Exception){
+                                            ex.printStackTrace()
+                                            //Begin 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
+                                            MonitorBroadcast.vibrator = null
+                                            //End 11.0 SystemEventReceiver AppV 4.1.3 Suman    03/05/2023 Monitor Broadcast update mantis 26011
+                                        }
+                                    }
+                                    var notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                                    notificationManager.cancel(monitorNotiID)
+                                }
                             }
+                            Handler().postDelayed(Runnable {
+                                calculategpsStatus(gpsStatus)
+                            }, 1000)
                         }
-
-
-
-
-                        Handler().postDelayed(Runnable {
-                            calculategpsStatus(gpsStatus)
-                        }, 1000)
                     }
-                }
-            })
+                })
+                Timber.d("GpsReceiver registration end : Time :" + AppUtils.getCurrentDateTime())
+            }catch (ex:Exception){
+                Timber.d("GpsReceiver registration ex ${ex.localizedMessage} ${ex.message} : Time :" + AppUtils.getCurrentDateTime())
+            }
+
 
             try {
                 //Register GPS Status Receiver
                 if (!TextUtils.isEmpty(Pref.user_id)){
                     registerReceiver(gpsReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
-                    println("loc_ex  gpsReceiver registered success" );
                     Timber.d("loc_ex  gpsReceiver registered success" )
                 }
             } catch (e: Exception) {
+                Timber.d("loc_ex  gpsReceiver registered ex ${e.message}" )
                 e.printStackTrace()
             }
 
             registerGpsStatusListener()
 
-            if (mGoogleAPIClient == null) {
-
-                mGoogleAPIClient = GoogleApiClient.Builder(this)
+            try{
+                Timber.d("mGoogleAPIClient begin" )
+                if (mGoogleAPIClient == null) {
+                    mGoogleAPIClient = GoogleApiClient.Builder(this)
                         .addApi(LocationServices.API)
                         .addConnectionCallbacks(this)
                         .addOnConnectionFailedListener(this)
                         .build()
 
-            } else {
-                Log.e(TAG, "mGoogleAPIClient connected: $mGoogleAPIClient")
-                mGoogleAPIClient?.connect()
+                } else {
+                    Log.e(TAG, "mGoogleAPIClient connected: $mGoogleAPIClient")
+                    mGoogleAPIClient?.connect()
+                }
+                Timber.d("mGoogleAPIClient end" )
+            }catch (ex:Exception){
+                Timber.d("mGoogleAPIClient ex ${ex.message}" )
             }
-
 
             //showOrderCollectionAlert()
 
             return START_STICKY
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.d("onstart noti process  gpsReceiver registered ex ${e.message}" )
             return START_STICKY
         }
     }
@@ -651,7 +671,26 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         Timber.d("service_tag onLocationChanged")
         //return
 
+      /*  try{
+            val pm = this.getSystemService(Context.POWER_SERVICE) as PowerManager
+            var sett = pm.isIgnoringBatteryOptimizations(packageName)
+            if(sett == false && Pref.IsLoggedIn){
+                println("service_battert_tag if")
+                Pref.IsAutoLogoutFromBatteryCheck = true
+                //(AppUtils.contx as DashboardActivity).loadFragment(FragType.LogoutSyncFragment, false, "")
+                (AppUtils.contx as DashboardActivity).batteryCheck(FragType.LogoutSyncFragment, false,"")
+            }else{
+                println("service_battert_tag else")
+            }
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            Pref.IsAutoLogoutFromBatteryCheck = false
+            println("service_battert_tag ex")
+        }*/
+
         try {
+            println("service_tag ${Pref.current_latitude.toString()} long - ${Pref.current_longitude.toString()}")
+
             if (location != null) {
                 // 8.0 LocationFuzedService AppV 4.0.7 Suman   18/03/2023 Location lat-long updation
                 AppUtils.mLocation = location
@@ -665,6 +704,24 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             //XLog.d("onLocationChanged : loc_update error" + AppUtils.getCurrentDateTime())
             Timber.d("onLocationChanged : loc_update error" + AppUtils.getCurrentDateTime())
         }
+
+        //begin Suman 21-09-2023 mantis id 0026837
+        try{
+            val packageName = "com.google.android.apps.maps"
+            val appInfo: ApplicationInfo = this.getPackageManager().getApplicationInfo(packageName, 0)
+            var appstatus = appInfo.enabled
+
+            if(!appstatus){
+                Timber.d("onLocationChanged : gmap app disable")
+            }else{
+                Timber.d("onLocationChanged : gmap app enable")
+            }
+            //val pInfo = this.packageManager.getPackageInfo("com.google.android.apps.maps", PackageManager.GET_PERMISSIONS)
+            //val version = pInfo.versionName
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+        //end Suman 21-09-2023 mantis id 0026837
 
 
         var tempLoc: Location = Location("")
@@ -760,8 +817,9 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 //        System.gc()
 //        trackDeviceMemory()
 
-        if (location.isFromMockProvider)
+        if (location.isFromMockProvider) {
             Timber.e("==================Mock Location is on (Location Fuzed Serive)====================")
+        }
         else {
             //Timber.e("==================Mock Location is off (Location Fuzed Serive)====================")
         }
@@ -852,6 +910,9 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         if(AppUtils.isOnline(this)){
             callShopDurationApi()
         }
+
+        checkToCallEditShop()
+
         //syncShopVisitImage()
 
         //callCompetetorImgUploadApi()
@@ -861,6 +922,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         syncMeetingData()
 
         if (Pref.isAppInfoEnable) {
+            Timber.d("saveBatteryNetData call")
             saveBatteryNetData()
 
             syncBatteryNetData()
@@ -1315,13 +1377,6 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             Timber.e("===============Should not save Battery Internet status data(Location Fuzed Service)==============")
             return
         }
-
-        /*XLog.d("battery status==========> " + AppUtils.getBatteryStatus(this@LocationFuzedService))
-        XLog.d("battery percentage==========> " + AppUtils.getBatteryPercentage(this@LocationFuzedService))
-        XLog.d("network type==========> " + AppUtils.getNetworkType(this@LocationFuzedService))
-        XLog.d("mobile network type==========> " + AppUtils.mobNetType(this@LocationFuzedService))
-        XLog.d("device model==========> " + AppUtils.getDeviceName())
-        XLog.d("android version==========> " + Build.VERSION.SDK_INT)*/
 
         Timber.d("battery status==========> " + AppUtils.getBatteryStatus(this@LocationFuzedService))
         Timber.d("battery percentage==========> " + AppUtils.getBatteryPercentage(this@LocationFuzedService))
@@ -2209,6 +2264,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             }
 
             distanceCovered += allLocationList[i].distance.toDouble()
+            Timber.d(" all loc ${allLocationList.get(i).latitude} ${allLocationList.get(i).longitude} $distanceCovered")
 
             if (!TextUtils.isEmpty(allLocationList[i].home_duration)) {
                 Timber.e("Home Duration (Location Fuzed Service)==> ${allLocationList[i].home_duration}")
@@ -2261,6 +2317,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                         Timber.e("Time (Location Fuzed Service)=================> ${allLocationList[i].time}")*/
                     }
                     apiLocationList.add(allLocationList[i])
+                    Timber.d(" api loc ${apiLocationList.get(i).latitude} ${apiLocationList.get(i).longitude} $distanceCovered")
                     distanceCovered = 0.0
                     timeStamp = 0L
                 }
@@ -2299,11 +2356,18 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
                 // 7.0 LocationFuzedService AppV 4.0.7 Suman   06/03/2023 Location name Unknown rectification 25715
                 try {
-                    if (locationData.location_name.equals("Unknown")) {
+                    if (locationData.location_name.equals("Unknown",ignoreCase = true)) {
                         locationData.location_name = LocationWizard.getLocationName(this, locationData.latitude!!.toDouble(), locationData.longitude!!.toDouble())
+                    }
+                    if(locationData.location_name.equals("Unknown",ignoreCase = true)){
+                        locationData.location_name = LocationWizard.getAdressFromLatlng(this, locationData.latitude!!.toDouble(), locationData.longitude!!.toDouble())
+                    }
+                    if(locationData.location_name.equals("Unknown",ignoreCase = true)){
+                        locationData.location_name = LocationWizard.getNewLocationName(this, locationData.latitude!!.toDouble(), locationData.longitude!!.toDouble())
                     }
                 } catch (ex: Exception) {
                     ex.printStackTrace()
+                    locationData.location_name = "Unknown"
                 }
 
 
@@ -2436,8 +2500,15 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
 
     private fun shouldShopActivityUpdate(): Boolean {
+        if(Pref.ShopSyncIntervalInMinutes.equals("")){
+            Pref.ShopSyncIntervalInMinutes = "10"
+        }
         AppUtils.changeLanguage(this, "en")
-        return if (abs(System.currentTimeMillis() - Pref.prevShopActivityTimeStamp) > 1000 * 60 * 10) {
+        //Begin 12.0 LocationFuzedService v 4.1.6 Tufan 11/07/2023 mantis 26546 revisit sync time
+        //return if (abs(System.currentTimeMillis() - Pref.prevShopActivityTimeStamp) > 1000 * 60 * 10) {
+        return if (abs(System.currentTimeMillis() - Pref.prevShopActivityTimeStamp) > 1000 * 60 * Pref.ShopSyncIntervalInMinutes.toInt()) {
+
+            //End 12.0 LocationFuzedService v 4.1.6 Tufan 11/07/2023 mantis 26546 revisit sync time
             Pref.prevShopActivityTimeStamp = System.currentTimeMillis()
             changeLocale()
             true
@@ -2788,6 +2859,24 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                 }
             }*/
 
+        //begin distance correction
+        try{
+            val locList = AppDatabase.getDBInstance()!!.userLocationDataDao().getLocationUpdateForADay(AppUtils.getCurrentDateForShopActi())
+            if (locList != null && locList.isNotEmpty()) {
+                var obj = locList.get(locList.size-1)
+                var prevDateTime = obj.updateDateTime
+                var savingDateTime = location.updateDateTime
+                var diffInMin = AppUtils.getDiffDateTime(prevDateTime.toString(),savingDateTime.toString())
+                if(diffInMin<3 && location.distance.toDouble().toInt()>4){
+                    location.distance = (AppUtils.maxDistance.toDouble()/1000).toString()
+                }
+            }
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+        //end distance correction
+
+        Timber.d(" save loc ${location.latitude} ${location.longitude} ${location.distance}")
 
         AppDatabase.getDBInstance()!!.userLocationDataDao().insertAll(location)
 //        XLog.d("Shop to shop distance (At accurate loc save time)====> " + Pref.totalS2SDistance)
@@ -2983,9 +3072,9 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
 //        XLog.d("callShopDurationApi : ENTER")
         Timber.d("callShopDurationApi : ENTER")
-
-        if (!shouldShopActivityUpdate())
-            return
+        
+        //if (!shouldShopActivityUpdate())
+          //  return
 
         Log.e("Location Fuzed Srvice", "isShopActivityUpdating===> $isShopActivityUpdating")
 
@@ -3380,6 +3469,9 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
                     if(shopDurationApiReqForNewShop.shop_list!!.size>0){
                         uploadNewShopVisit(shopDurationApiReqForNewShop,newShopList,shopDataList as ArrayList<ShopDurationRequestData>)
+                        if(!revisitStatusList.isEmpty()){
+                            callRevisitStatusUploadApi(revisitStatusList!!)
+                        }
                     }
                     Handler().postDelayed(Runnable {
                         if(shopDurationApiReqForOldShop.shop_list!!.size>0){ compositeDisposable.add(
@@ -3874,8 +3966,10 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             userlocation.home_distance = (distance * 1000).toString()
             Timber.e("LocationFuzedService: home_distance=> ${userlocation.home_distance} Meter")
 
-            if (distance * 1000 > Pref.homeLocDistance.toDouble())
+            if (distance * 1000 > Pref.homeLocDistance.toDouble()){
+                Timber.e("calculateAccurateDistance calling ${maxDis}")
                 calculateAccurateDistance(userlocation, maxDis, location)
+            }
             else {
                 Timber.e("=User is at home location (Location Fuzed Service)=")
                 userlocation.distance = "0.0"
@@ -4004,7 +4098,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
         //distance = 1.21
 
-        Timber.e("Original Distance (LocationFuzedService)===> $distance")
+        Timber.e("calculateAccurateDistance Original Distance (LocationFuzedService)===> $distance ${mLastLocation?.latitude!!} ${mLastLocation?.longitude!!} ${userlocation.latitude.toDouble()} ${userlocation.longitude.toDouble()}")
 
         if (distance * 1000 >= AppUtils.minDistance.toDouble() && distance * 1000 <= maxDis /*AppUtils.maxDistance.toDouble()*/) {
             /*resetData()
@@ -4091,6 +4185,11 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             try {
                 var obj = AppDatabase.getDBInstance()!!.userLocationDataDao().getLastRecord()
                 finalDistance = obj.distance
+
+                //begin 26-09-2023 Suman mantis id 26857
+                finalDistance = "0.0"
+                //end 26-09-2023 Suman mantis id 26857
+
             } catch (ex: Exception) {
                 finalDistance = "0.0"
             }
@@ -4729,6 +4828,202 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                             }
                         })
         )
+    }
+
+
+    var jj = 0
+    fun checkToCallEditShop(){
+        try{
+            val list = AppDatabase.getDBInstance()!!.addShopEntryDao().getUnsyncEditShop(0, true)
+            if (list != null && list.size > 0) {
+                jj = 0
+                editShop(list)
+            }
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun editShop(list: MutableList<AddShopDBModelEntity>) {
+        try{
+            val addShopData = AddShopRequestData()
+            val mAddShopDBModelEntity = list[jj]
+            addShopData.session_token = Pref.session_token
+            addShopData.address = mAddShopDBModelEntity.address
+            addShopData.owner_contact_no = mAddShopDBModelEntity.ownerContactNumber
+            addShopData.owner_email = mAddShopDBModelEntity.ownerEmailId
+            addShopData.owner_name = mAddShopDBModelEntity.ownerName
+            addShopData.pin_code = mAddShopDBModelEntity.pinCode
+            addShopData.shop_lat = mAddShopDBModelEntity.shopLat.toString()
+            addShopData.shop_long = mAddShopDBModelEntity.shopLong.toString()
+            addShopData.shop_name = mAddShopDBModelEntity.shopName.toString()
+            addShopData.type = mAddShopDBModelEntity.type.toString()
+            addShopData.shop_id = mAddShopDBModelEntity.shop_id
+            addShopData.user_id = Pref.user_id
+            addShopData.assigned_to_dd_id = mAddShopDBModelEntity.assigned_to_dd_id
+            addShopData.assigned_to_pp_id = mAddShopDBModelEntity.assigned_to_pp_id
+            addShopData.added_date = ""
+            addShopData.amount = addShopData.amount
+            addShopData.area_id = addShopData.area_id
+            addShopData.model_id = addShopData.model_id
+            addShopData.primary_app_id = addShopData.primary_app_id
+            addShopData.secondary_app_id = addShopData.secondary_app_id
+            addShopData.lead_id = addShopData.lead_id
+            addShopData.stage_id = addShopData.stage_id
+            addShopData.funnel_stage_id = addShopData.funnel_stage_id
+            addShopData.booking_amount = addShopData.booking_amount
+            addShopData.type_id = addShopData.type_id
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.dateOfBirth))
+                addShopData.dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.dateOfBirth)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.dateOfAniversary))
+                addShopData.date_aniversary = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.dateOfAniversary)
+
+            addShopData.director_name = mAddShopDBModelEntity.director_name
+            addShopData.key_person_name = mAddShopDBModelEntity.person_name
+            addShopData.phone_no = mAddShopDBModelEntity.person_no
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.family_member_dob))
+                addShopData.family_member_dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.family_member_dob)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.add_dob))
+                addShopData.addtional_dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.add_dob)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.add_doa))
+                addShopData.addtional_doa = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.add_doa)
+
+            addShopData.specialization = mAddShopDBModelEntity.specialization
+            addShopData.category = mAddShopDBModelEntity.category
+            addShopData.doc_address = mAddShopDBModelEntity.doc_address
+            addShopData.doc_pincode = mAddShopDBModelEntity.doc_pincode
+            addShopData.is_chamber_same_headquarter = mAddShopDBModelEntity.chamber_status.toString()
+            addShopData.is_chamber_same_headquarter_remarks = mAddShopDBModelEntity.remarks
+            addShopData.chemist_name = mAddShopDBModelEntity.chemist_name
+            addShopData.chemist_address = mAddShopDBModelEntity.chemist_address
+            addShopData.chemist_pincode = mAddShopDBModelEntity.chemist_pincode
+            addShopData.assistant_contact_no = mAddShopDBModelEntity.assistant_no
+            addShopData.average_patient_per_day = mAddShopDBModelEntity.patient_count
+            addShopData.assistant_name = mAddShopDBModelEntity.assistant_name
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.doc_family_dob))
+                addShopData.doc_family_member_dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.doc_family_dob)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.assistant_dob))
+                addShopData.assistant_dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.assistant_dob)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.assistant_doa))
+                addShopData.assistant_doa = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.assistant_doa)
+
+            if (!TextUtils.isEmpty(mAddShopDBModelEntity.assistant_family_dob))
+                addShopData.assistant_family_dob = AppUtils.changeAttendanceDateFormatToCurrent(mAddShopDBModelEntity.assistant_family_dob)
+
+            addShopData.entity_id = mAddShopDBModelEntity.entity_id
+            addShopData.party_status_id = mAddShopDBModelEntity.party_status_id
+            addShopData.retailer_id = mAddShopDBModelEntity.retailer_id
+            addShopData.dealer_id = mAddShopDBModelEntity.dealer_id
+            addShopData.beat_id = mAddShopDBModelEntity.beat_id
+            addShopData.assigned_to_shop_id = mAddShopDBModelEntity.assigned_to_shop_id
+            addShopData.actual_address = mAddShopDBModelEntity.actual_address
+
+            /*14-12-2021*/
+            if (addShopData.agency_name!=null && !addShopData.agency_name.equals("")) {
+                addShopData.agency_name = addShopData.agency_name!!
+            }
+            else {
+                addShopData.agency_name = ""
+            }
+
+            /*11-02-2022*/
+            addShopData.landline_number = mAddShopDBModelEntity.landline_number
+            addShopData.alternateNoForCustomer = mAddShopDBModelEntity.alternateNoForCustomer
+            addShopData.whatsappNoForCustomer = mAddShopDBModelEntity.whatsappNoForCustomer
+
+            /*GSTIN & PAN NUMBER*/
+            if (addShopData.GSTN_Number!=null && !addShopData.GSTN_Number.equals("")) {
+                mAddShopDBModelEntity.gstN_Number = addShopData.GSTN_Number!!
+            }
+            else {
+                mAddShopDBModelEntity.gstN_Number = ""
+            }
+
+            if (addShopData.ShopOwner_PAN!=null && !addShopData.ShopOwner_PAN.equals("")) {
+                mAddShopDBModelEntity.shopOwner_PAN = addShopData.ShopOwner_PAN!!
+            }
+            else {
+                mAddShopDBModelEntity.shopOwner_PAN = ""
+            }
+
+            try{
+                if(mAddShopDBModelEntity.isUpdateAddressFromShopMaster!!){
+                    addShopData.isUpdateAddressFromShopMaster = true
+                }else{
+                    addShopData.isUpdateAddressFromShopMaster = false
+                }
+                Timber.d("tag_update addr ${mAddShopDBModelEntity.isUpdateAddressFromShopMaster} ${addShopData.isUpdateAddressFromShopMaster}")
+            }catch (ex:Exception){
+                ex.printStackTrace()
+                addShopData.isUpdateAddressFromShopMaster = false
+                Timber.d("tag_update addr ex ${addShopData.isUpdateAddressFromShopMaster}")
+            }
+
+            val index = addShopData.shop_id!!.indexOf("_")
+            if (mAddShopDBModelEntity.shopImageLocalPath != null)
+                Timber.d("shop image path====> " + mAddShopDBModelEntity.shopImageLocalPath)
+
+            if (mAddShopDBModelEntity.doc_degree != null)
+                Timber.d("doctor degree image path=======> " + mAddShopDBModelEntity.doc_degree)
+
+            if (TextUtils.isEmpty(mAddShopDBModelEntity.shopImageLocalPath) && TextUtils.isEmpty(mAddShopDBModelEntity.doc_degree)) {
+                val repository = EditShopRepoProvider.provideEditShopWithoutImageRepository()
+                BaseActivity.compositeDisposable.add(
+                    repository.editShop(addShopData)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe({ result ->
+                            val addShopResult = result as AddShopResponse
+                            Timber.d("Edit Shop : " + ", SHOP: " + addShopData.shop_name + ", STATUS: " + addShopResult.status + ",RESPONSE:" + result.message)
+                            if (addShopResult.status == NetworkConstant.SUCCESS) {
+                                AppDatabase.getDBInstance()!!.addShopEntryDao().updateIsEditUploaded(1, addShopData.shop_id)
+                                jj++
+                                if (jj < list.size) {
+                                    editShop(list)
+                                }else{
+                                    jj=0
+                                }
+                            }
+                        }, { error ->
+                            error.printStackTrace()
+                        })
+                )
+            }
+            else {
+                val repository = EditShopRepoProvider.provideEditShopRepository()
+                BaseActivity.compositeDisposable.add(
+                    repository.addShopWithImage(addShopData, mAddShopDBModelEntity.shopImageLocalPath, mAddShopDBModelEntity.doc_degree, this)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe({ result ->
+                            val addShopResult = result as AddShopResponse
+                            Timber.d("Edit Shop : " + ", SHOP: " + addShopData.shop_name + ", STATUS: " + addShopResult.status + ",RESPONSE:" + result.message)
+                            if (addShopResult.status == NetworkConstant.SUCCESS) {
+                                AppDatabase.getDBInstance()!!.addShopEntryDao().updateIsEditUploaded(1, addShopData.shop_id)
+                                jj++
+                                if (jj < list.size) {
+                                    editShop(list)
+                                }else{
+                                    jj=0
+                                }
+                            }
+                        }, { error ->
+                            error.printStackTrace()
+                        })
+                )
+            }
+        } catch (ex:Exception){
+            ex.printStackTrace()
+        }
     }
 
 

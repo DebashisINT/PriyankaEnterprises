@@ -4,6 +4,7 @@ package com.breezefsmpriyankaenterprises.features.dashboard.presentation
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.Activity
 import android.app.Dialog
 import android.app.NotificationManager
@@ -11,6 +12,7 @@ import android.app.PendingIntent
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.*
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -19,8 +21,12 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
 import android.net.*
 import android.os.*
+import android.provider.CallLog
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.provider.Settings
 import android.speech.RecognizerIntent
@@ -56,6 +62,7 @@ import com.breezefsmpriyankaenterprises.*
 import com.breezefsmpriyankaenterprises.R
 import com.breezefsmpriyankaenterprises.app.*
 import com.breezefsmpriyankaenterprises.app.NewFileUtils.browseDocuments
+import com.breezefsmpriyankaenterprises.app.NewFileUtils.browsePDFDocuments
 import com.breezefsmpriyankaenterprises.app.NewFileUtils.getExtension
 import com.breezefsmpriyankaenterprises.app.domain.*
 import com.breezefsmpriyankaenterprises.app.types.DashboardType
@@ -165,6 +172,9 @@ import com.breezefsmpriyankaenterprises.features.login.model.alarmconfigmodel.Al
 import com.breezefsmpriyankaenterprises.features.login.presentation.LoginActivity
 import com.breezefsmpriyankaenterprises.features.logout.presentation.api.LogoutRepositoryProvider
 import com.breezefsmpriyankaenterprises.features.logoutsync.presentation.LogoutSyncFragment
+import com.breezefsmpriyankaenterprises.features.marketAssist.MarketAssistTabFrag
+import com.breezefsmpriyankaenterprises.features.marketAssist.ShopDtlsMarketAssistFrag
+import com.breezefsmpriyankaenterprises.features.marketAssist.ShopListMarketAssistFrag
 import com.breezefsmpriyankaenterprises.features.marketing.presentation.MarketingPagerFragment
 import com.breezefsmpriyankaenterprises.features.meetinglist.prsentation.MeetingListFragment
 import com.breezefsmpriyankaenterprises.features.member.MapViewForTeamFrag
@@ -209,7 +219,9 @@ import com.breezefsmpriyankaenterprises.features.performance.GpsStatusFragment
 import com.breezefsmpriyankaenterprises.features.performance.PerformanceFragment
 import com.breezefsmpriyankaenterprises.features.performance.api.UpdateGpsStatusRepoProvider
 import com.breezefsmpriyankaenterprises.features.performance.model.UpdateGpsInputParamsModel
+import com.breezefsmpriyankaenterprises.features.performanceAPP.OwnPerformanceFragment
 import com.breezefsmpriyankaenterprises.features.performanceAPP.PerformanceAppFragment
+import com.breezefsmpriyankaenterprises.features.performanceAPP.allPerformanceFrag
 import com.breezefsmpriyankaenterprises.features.permissionList.ViewPermissionFragment
 import com.breezefsmpriyankaenterprises.features.photoReg.*
 import com.breezefsmpriyankaenterprises.features.privacypolicy.PrivacypolicyWebviewFrag
@@ -226,6 +238,7 @@ import com.breezefsmpriyankaenterprises.features.stock.StockListFragment
 import com.breezefsmpriyankaenterprises.features.stockAddCurrentStock.AddShopStockFragment
 import com.breezefsmpriyankaenterprises.features.stockAddCurrentStock.UpdateShopStockFragment
 import com.breezefsmpriyankaenterprises.features.stockAddCurrentStock.ViewStockDetailsFragment
+import com.breezefsmpriyankaenterprises.features.stockAddCurrentStock.model.MultipleImageFileUploadonStock
 import com.breezefsmpriyankaenterprises.features.stockCompetetorStock.AddCompetetorStockFragment
 import com.breezefsmpriyankaenterprises.features.stockCompetetorStock.CompetetorStockFragment
 import com.breezefsmpriyankaenterprises.features.stockCompetetorStock.ViewComStockProductDetails
@@ -261,6 +274,8 @@ import com.breezefsmpriyankaenterprises.mappackage.MapActivityWithoutPath
 import com.breezefsmpriyankaenterprises.mappackage.SendBrod
 import com.breezefsmpriyankaenterprises.widgets.AppCustomEditText
 import com.breezefsmpriyankaenterprises.widgets.AppCustomTextView
+import com.facebook.FacebookSdk
+import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.tasks.OnCompleteListener
@@ -276,6 +291,7 @@ import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import com.themechangeapp.pickimage.PermissionHelper
 import com.themechangeapp.pickimage.PermissionHelper.Companion.REQUEST_CODE_DOCUMENT
+import com.themechangeapp.pickimage.PermissionHelper.Companion.REQUEST_CODE_DOCUMENT_PDF
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_dashboard_new.*
@@ -289,15 +305,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.*
+import java.sql.Date
 import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
-import android.R.attr.name
-import com.breezefsmpriyankaenterprises.app.NewFileUtils.browsePDFDocuments
-import com.breezefsmpriyankaenterprises.features.marketAssist.ShopDtlsMarketAssistFrag
-import com.breezefsmpriyankaenterprises.features.marketAssist.ShopListMarketAssistFrag
-import com.breezefsmpriyankaenterprises.features.stockAddCurrentStock.model.MultipleImageFileUploadonStock
-import com.themechangeapp.pickimage.PermissionHelper.Companion.REQUEST_CODE_DOCUMENT_PDF
+import kotlin.collections.ArrayList
 
 
 /*
@@ -327,6 +339,8 @@ import com.themechangeapp.pickimage.PermissionHelper.Companion.REQUEST_CODE_DOCU
 // REv 20.0 DashboardActivity AppV 4.0.8 saheli    08/05/2023 0026024 :under the 'Assigned Lead' page
 // Rev 21.0 DashboardActivity AppV 4.0.8 saheli    12/05/2023 mantis 26101
 // Rev 22.0 DashboardActivity AppV 4.1.3 Suman 18-05-2023  mantis 26162
+// rev 23.0 DashobaordActivity  AppV 4.1.6  Saheli    19/06/2023 pdf remark field mantis 26139
+// Rev 24.0 DashboardACtivity v 4.1.6 stock optmization mantis 0026391 20-06-2023 saheli
 class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, OnCompleteListener<Void>, GpsStatusDetector.GpsStatusDetectorCallBack {
     override fun onComplete(task: Task<Void>) {
         mPendingGeofenceTask = PendingGeofenceTask.NONE;
@@ -354,6 +368,7 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
     @SuppressLint("MissingPermission")
     override fun loadFragment(mFragType: FragType, addToStack: Boolean, initializeObject: Any) {
         AppUtils.contx = this
+        Pref.IsLoggedIn = true
 
         drawerLayout.closeDrawers()
 
@@ -376,20 +391,319 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             //println("fcm_token " + token.toString());
             Timber.d("token : " + token.toString())
         })
-        println("load_frag " + mFragType.toString() + "     " + Pref.user_id.toString()+" "+Pref.IsBeatPlanAvailable +" "+Pref.IsShowReimbursementTypeInAttendance);
 
-        //val distance = LocationWizard.getDistance(22.4339117,	87.3366233, 22.52156	,87.3279733)
-        //Pref.isExpenseFeatureAvailable = false
-        Timber.d("dash_frag ends ${AppUtils.getCurrentDateTime()} ${Pref.current_latitude} ${Pref.current_latitude}")
-        //AppDatabase.getDBInstance()!!.userLocationDataDao().updateUnknownLocationTest(AppUtils.getCurrentDateForShopActi(),"Unknown",false)
-        if (addToStack) {
+        //begin Suman 21-09-2023 mantis id 0026837
+        try{
+            val packageName = "com.google.android.apps.maps"
+            val appInfo: ApplicationInfo = this.getPackageManager().getApplicationInfo(packageName, 0)
+            var appstatus = appInfo.enabled
+
+            if(!appstatus && !mFragType.equals(FragType.DashboardFragment)){
+                val simpleDialog = Dialog(mContext)
+                simpleDialog.setCancelable(false)
+                simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                simpleDialog.setContentView(R.layout.dialog_ok)
+                val dialogHeader = simpleDialog.findViewById(R.id.dialog_yes_header_TV) as AppCustomTextView
+                dialogHeader.text = "Location will be inappropriate as Google map is disabled. Please go to settings of your phone and Enable Google Map. Thank you."
+                val dialogYes = simpleDialog.findViewById(R.id.tv_dialog_yes) as AppCustomTextView
+                dialogYes.setOnClickListener({ view ->
+                    simpleDialog.cancel()
+                })
+                simpleDialog.show()
+                return
+            }else{
+                println("load_frag " +" gmap app enable")
+            }
+
+            //val pInfo = this.packageManager.getPackageInfo("com.google.android.apps.maps", PackageManager.GET_PERMISSIONS)
+            //val version = pInfo.versionName
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+        //end Suman 21-09-2023 mantis id 0026837
+        println("load_frag " + mFragType.toString() + "     " + Pref.user_id.toString()+" "+Pref.ShowUserwiseLeadMenu )
+        if(mFragType.equals(FragType.DashboardFragment) && !mFragType.equals(FragType.LogoutSyncFragment)){
+            Pref.IsAnyPageVisitFromDshboard = false
+            println("dasg_tag if")
+        }else{
+            Pref.IsAnyPageVisitFromDshboard = true
+            println("dasg_tag else")
+        }
+
+       // initPermissionCheckOne()
+
+        batteryCheck(mFragType,addToStack,initializeObject)
+
+        /*if (addToStack) {
             mTransaction.add(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
             mTransaction.addToBackStack(mFragType.toString()).commitAllowingStateLoss()
         } else {
             mTransaction.replace(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
             mTransaction.commitAllowingStateLoss()
+        }*/
+
+    }
+
+/*
+    private fun initPermissionCheckOne() {
+        var permissionList = arrayOf<String>( Manifest.permission.READ_CALL_LOG, Manifest.permission.WRITE_CALL_LOG,Manifest.permission.READ_CONTACTS)
+        permissionUtils = PermissionUtils(this, object : PermissionUtils.OnPermissionListener {
+            @TargetApi(Build.VERSION_CODES.M)
+            override fun onPermissionGranted() {
+              //  Toaster.msgShort(this@DashboardActivity,"PG")
+                var t1 = obtenerDetallesLlamadas(this@DashboardActivity)
+              //  var t2 = getNamePhoneDetails()
+             //   var t3=t2
+            }
+            override fun onPermissionNotGranted() {
+
+            }
+        },permissionList)
+    }
+*/
+
+    @SuppressLint("Range")
+
+
+    data class Contact(val id:String="",val name:String="",val number:String="")
+
+    fun getNamePhoneDetails(): ArrayList<Contact>? {
+        val names:ArrayList<Contact> = ArrayList()
+        val cr = contentResolver
+        val cur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+            null, null, null)
+        if (cur!!.count > 0) {
+            while (cur.moveToNext()) {
+                val id = cur.getString(cur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NAME_RAW_CONTACT_ID))
+                val name = cur.getString(cur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                val number = cur.getString(cur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                names.add(Contact(id , name , number))
+            }
+        }
+        return names
+    }
+
+    data class PhoneCallDtls(var number:String?="",var type:String?="",var callDate:String?="",var callDateTime:String?="",var callDuration:String?="")
+
+    fun obtenerDetallesLlamadas(context: Context): ArrayList<PhoneCallDtls>? {
+        //public static String obtenerDetallesLlamadas(Context context) {
+        try {
+            val stringBuffer = StringBuffer()
+            val cursor = context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                null, null, null, CallLog.Calls.DATE + " DESC"
+            )
+            val number = cursor!!.getColumnIndex(CallLog.Calls.NUMBER)
+            val type = cursor.getColumnIndex(CallLog.Calls.TYPE)
+            val date = cursor.getColumnIndex(CallLog.Calls.DATE)
+            val duration = cursor.getColumnIndex(CallLog.Calls.DURATION)
+
+            val phoneCallRecord = ArrayList<PhoneCallDtls>()
+
+            while (cursor.moveToNext()) {
+                val phNumber = cursor.getString(number)
+                val callType = cursor.getString(type)
+                val callDate = cursor.getString(date)
+                val callDayTime = Date(java.lang.Long.valueOf(callDate))
+                var callDateTime = AppUtils.getDateTimeFromTimeStamp(callDate.toLong())
+                val callDuration = cursor.getString(duration)
+                var dir: String? = null
+                val dircode = callType.toInt()
+                when (dircode) {
+                    CallLog.Calls.OUTGOING_TYPE -> dir = "OUTGOING"
+                    CallLog.Calls.INCOMING_TYPE -> dir = "INCOMING"
+                    CallLog.Calls.MISSED_TYPE -> dir = "MISSED"
+                }
+                stringBuffer.append(
+                    "\nPhone Number:--- " + phNumber + " \nCall Type:--- "
+                            + dir + " \nCall Date:--- " + callDayTime
+                            + " \nCall duration in sec :--- " + callDuration
+                )
+                stringBuffer.append("\n----------------------------------")
+
+                try{
+                    val obj = PhoneCallDtls()
+                    obj.number = phNumber
+                    obj.type = dir
+                    obj.callDate = callDate
+                    obj.callDateTime = callDateTime
+                    obj.callDuration = callDuration
+                    phoneCallRecord.add(obj)
+                }catch (ex:Exception){
+                    ex.printStackTrace()
+                }
+
+            }
+            cursor.close()
+            return phoneCallRecord
+            //return stringBuffer.toString();
+        } catch (ex: java.lang.Exception) {
+            ex.printStackTrace()
+        }
+        return null
+    }
+
+
+    fun batteryCheck(mFragType: FragType, addToStack: Boolean, initializeObject: Any){
+        val mTransaction = supportFragmentManager.beginTransaction()
+        mTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out)
+        try{
+            val pm = mContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+            var sett = pm.isIgnoringBatteryOptimizations(packageName)
+            if(!mFragType.equals(FragType.DashboardFragment) && sett==false && !mFragType.equals(FragType.LogoutSyncFragment)){
+                val simpleDialog = Dialog(mContext)
+                simpleDialog.setCancelable(false)
+                simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                simpleDialog.setContentView(R.layout.dialog_ok_logout)
+                val dialogHeader = simpleDialog.findViewById(R.id.dialog_yes_header_TV) as AppCustomTextView
+                var msgHead = "App battery Saver is turned on. Please follow the below settings."
+                if(AppUtils.getDeviceName().contains("MI",ignoreCase = true) || AppUtils.getDeviceName().contains("Redmi",ignoreCase = true) ||
+                    AppUtils.getDeviceName().contains("Poco",ignoreCase = true)){
+                    dialogHeader.text = msgHead+" "+"Go to Settings -> Apps -> Manage Apps -> FSM App -> Battery Saver -> No restrictions."
+                }else if(AppUtils.getDeviceName().contains("Vivo",ignoreCase = true)){
+                    dialogHeader.text = msgHead+" "+"Go to Settings -> Battery -> Background Battery Power Consumption Ranking / High Background Power Consumption -> FSM App -> Don't Restrict."
+                }else{
+                    dialogHeader.text = msgHead+" "+"Go to Settings -> Apps -> FSM App -> Battery -> Unrestricted."
+                }
+                val dialogYes = simpleDialog.findViewById(R.id.tv_dialog_yes) as AppCustomTextView
+                dialogYes.setOnClickListener({ view ->
+                    //simpleDialog.cancel()
+                    //callLogout()
+
+                    /*val intent = Intent()
+                    val packageName = packageName
+                    intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    val uri = Uri.fromParts("package", packageName, null)
+                    intent.data = uri
+                    mContext.startActivity(intent)*/
+                })
+                simpleDialog.show()
+                Handler().postDelayed(Runnable {
+                    val timer = object : CountDownTimer(6 * 1000, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            dialogYes.text = "Logout in "+(millisUntilFinished / 1000).toString()+" seconds..."
+                        }
+                        override fun onFinish() {
+                            simpleDialog.cancel()
+                            callLogout()
+                            //Toaster.msgShort(this@DashboardActivity,"Logout call")
+                        }
+                    }.start()
+                }, 1000)
+            }
+            else{
+                if (addToStack) {
+                    mTransaction.add(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
+                    mTransaction.addToBackStack(mFragType.toString()).commitAllowingStateLoss()
+                } else {
+                    mTransaction.replace(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
+                    mTransaction.commitAllowingStateLoss()
+                }
+            }
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            if (addToStack) {
+                mTransaction.add(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
+                mTransaction.addToBackStack(mFragType.toString()).commitAllowingStateLoss()
+            } else {
+                mTransaction.replace(R.id.frame_layout_container, getFragInstance(mFragType, initializeObject, true)!!, mFragType.toString())
+                mTransaction.commitAllowingStateLoss()
+            }
+        }
+    }
+
+    fun callLogout(){
+        Pref.IsAutoLogoutFromBatteryCheck = true
+        if(AppUtils.isOnline(this)){
+            Timber.d("Battery optimization in online mode.")
+            (mContext as DashboardActivity).loadFragment(FragType.LogoutSyncFragment, true, "")
+        }else{
+            Timber.d("Battery optimization in offline mode.")
+            try{
+                var  soundUriAlarm = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + this.getPackageName() + "/" + R.raw.beethoven)
+                if (soundUriAlarm == null){
+                    soundUriAlarm = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                }
+                var player: MediaPlayer = MediaPlayer.create(this, soundUriAlarm)
+                player.isLooping = true
+                player.start()
+                var vibrator : Vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                val pattern = longArrayOf(0, 5, 10, 20, 40, 80, 120, 100, 600, 700, 500, 500, 500)
+                vibrator.vibrate(pattern, 1)
+
+
+                val simpleDialog = Dialog(mContext)
+                simpleDialog.setCancelable(false)
+                simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                simpleDialog.setContentView(R.layout.dialog_ok)
+                val dialogHeader = simpleDialog.findViewById(R.id.dialog_yes_header_TV) as AppCustomTextView
+                dialogHeader.text = "Device is in offline mode. Internet connection is required for auto logout."
+                val dialogYes = simpleDialog.findViewById(R.id.tv_dialog_yes) as AppCustomTextView
+                dialogYes.setOnClickListener({ view ->
+                    simpleDialog.cancel()
+                    player.stop()
+                    vibrator.cancel()
+                })
+                simpleDialog.show()
+            }catch (ex:Exception){
+                ex.printStackTrace()
+            }
         }
 
+
+        /*val unSyncedList = AppDatabase.getDBInstance()!!.userLocationDataDao().getLocationUpdateForADayNotSyn(AppUtils.convertFromRightToReverseFormat(Pref.login_date!!), false)
+        var distance = 0.0
+        if (unSyncedList != null && unSyncedList.isNotEmpty()) {
+            var totalDistance = 0.0
+            for (i in unSyncedList.indices) {
+                totalDistance += unSyncedList[i].distance.toDouble()
+            }
+            distance = Pref.tempDistance.toDouble() + totalDistance
+        }
+        else{
+            distance = Pref.tempDistance.toDouble()
+        }
+        var location = ""
+        if (Pref.logout_latitude != "0.0" && Pref.logout_longitude != "0.0") {
+            location = LocationWizard.getAdressFromLatlng(this, Pref.logout_latitude.toDouble(), Pref.logout_longitude.toDouble())
+            if (location.contains("http"))
+                location = "Unknown"
+        }
+
+        val repository = LogoutRepositoryProvider.provideLogoutRepository()
+        BaseActivity.compositeDisposable.add(
+            repository.logout(Pref.user_id!!, Pref.session_token!!, Pref.logout_latitude, Pref.logout_longitude,AppUtils.getCurrentDateTime(),
+                distance.toString(), "1", location)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({ result ->
+                    val logoutResponse = result as BaseResponse
+                    Timber.d("AUTO_LOGOUT : " + "RESPONSE : " + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + logoutResponse.message)
+                    if (logoutResponse.status == NetworkConstant.SUCCESS) {
+                        Pref.tempDistance = "0.0"
+                        if (unSyncedList != null && unSyncedList.isNotEmpty()) {
+                            for (i in unSyncedList.indices) {
+                                AppDatabase.getDBInstance()!!.userLocationDataDao().updateIsUploaded(true, unSyncedList[i].locationId)
+                            }
+                        }
+                        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        notificationManager.cancelAll()
+                        Pref.logout_latitude = "0.0"
+                        Pref.logout_longitude = "0.0"
+                        clearData()
+                        Pref.isAutoLogout = false
+                        Pref.isAddAttendence = false
+                    } else
+                        performLogout()
+                        BaseActivity.isApiInitiated = false
+                        takeActionOnGeofence()
+                }, { error ->
+                        Toaster.msgShort(this, getString(R.string.something_went_wrong))
+                        Timber.d("AUTO_LOGOUT : " + "RESPONSE ERROR: " + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + error.localizedMessage)
+                        error.printStackTrace()
+                        performLogout()
+                    })
+        )*/
     }
 
 
@@ -852,6 +1166,7 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                     }
 
                     val leadActivityList=AppDatabase.getDBInstance()!!.leadActivityDao().getAll(AppUtils.getCurrentDateForShopActi())
+                    Timber.d("lead activity ${leadActivityList.size}")
                     leadActivityList?.forEach {
                         val notification = NotificationUtils(getString(R.string.app_name), "", "", "")
                         //val shop = AppDatabase.getDBInstance()?.addShopEntryDao()?.getShopByIdN(it.shopid)
@@ -960,6 +1275,7 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
         LocalBroadcastManager.getInstance(this).registerReceiver(fcmReceiver_leave, IntentFilter("FCM_ACTION_RECEIVER_LEAVE"))
         LocalBroadcastManager.getInstance(this).registerReceiver(fcmReceiver_leave_status, IntentFilter("FCM_ACTION_RECEIVER_LEAVE_STATUS"))
         LocalBroadcastManager.getInstance(this).registerReceiver(fcmReceiver_quotation_approval, IntentFilter("FCM_ACTION_RECEIVER_quotation_approval"))
+        LocalBroadcastManager.getInstance(this).registerReceiver(fcm_ACTION_RECEIVER_LEAD, IntentFilter("FCM_ACTION_RECEIVER_LEAD"))
         LocalBroadcastManager.getInstance(this).registerReceiver(idealLocReceiver, IntentFilter("IDEAL_LOC_BROADCAST"))
         LocalBroadcastManager.getInstance(this).registerReceiver(attendNotiReceiver, IntentFilter("IDEAL_ATTEND_BROADCAST"))
         LocalBroadcastManager.getInstance(this).registerReceiver(collectionAlertReceiver, IntentFilter("ALERT_RECIEVER_BROADCAST"))
@@ -1058,6 +1374,12 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             WorkManager.getInstance(this).enqueueUniquePeriodicWork("loc_worker", ExistingPeriodicWorkPolicy.KEEP, request)
         }
         }, 1000)
+
+
+        // In your Application class or MainActivity
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(application); // For logging app activation events
+
 
     }
     //Start of Rev 18 DashboardActivity AppV 4.0.8 Suman    28/04/2023 worker manager updation 25973
@@ -1312,6 +1634,11 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                                     if (getFragment() != null && getFragment() !is MicroLearningListFragment)
                                         loadFragment(FragType.MicroLearningListFragment, false, "")
                                 }, 500)
+                            }else if (intent.getStringExtra("TYPE").equals("lead_work", ignoreCase = true)) {
+                                Handler().postDelayed(Runnable {
+                                    if (getFragment() != null && getFragment() !is LeadFrag)
+                                        loadFragment(FragType.LeadFrag, false, "")
+                                }, 500)
                             }
                             else if (intent.getStringExtra("TYPE").equals("clearData", ignoreCase = true)) {
                                 isClearData = true
@@ -1425,6 +1752,54 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
     override fun onResume() {
         super.onResume()
 
+        //begin Suman 21-09-2023 mantis id 0026837
+        try{
+            val packageName = "com.google.android.apps.maps"
+            val appInfo: ApplicationInfo = this.getPackageManager().getApplicationInfo(packageName, 0)
+            var appstatus = appInfo.enabled
+
+            if(!appstatus){
+                val simpleDialog = Dialog(mContext)
+                simpleDialog.setCancelable(false)
+                simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                simpleDialog.setContentView(R.layout.dialog_ok)
+                val dialogHeader = simpleDialog.findViewById(R.id.dialog_yes_header_TV) as AppCustomTextView
+                dialogHeader.text = "Location will be inappropriate as Google map is disabled. Please go to settings of your phone and Enable Google Map. Thank you."
+                val dialogYes = simpleDialog.findViewById(R.id.tv_dialog_yes) as AppCustomTextView
+                dialogYes.setOnClickListener({ view ->
+                    simpleDialog.cancel()
+                })
+                simpleDialog.show()
+                return
+            }else{
+                println("load_frag " +" gmap app enable")
+            }
+
+            //val pInfo = this.packageManager.getPackageInfo("com.google.android.apps.maps", PackageManager.GET_PERMISSIONS)
+            //val version = pInfo.versionName
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+        //end Suman 21-09-2023 mantis id 0026837
+
+        println("tag_lifecycle onresume")
+        //if(Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.ADB_ENABLED, 0) == 1 && Pref.IsUsbDebuggingRestricted) {
+        if(Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.DEVELOPMENT_SETTINGS_ENABLED , 0) == 1 && Pref.IsUsbDebuggingRestricted) {
+            val simpleDialog = Dialog(mContext)
+            simpleDialog.setCancelable(false)
+            simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            simpleDialog.setContentView(R.layout.dialog_debugger)
+            val okBtn = simpleDialog.findViewById(R.id.tv_dialog_ok) as AppCustomTextView
+            val tvHeader = simpleDialog.findViewById(R.id.dialog_yes_no_headerTV) as AppCustomTextView
+            tvHeader.text = getString(R.string.app_name)
+            okBtn.setOnClickListener({ view ->
+                simpleDialog.cancel()
+                startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+            })
+            simpleDialog.show()
+        }
+
+
         try{
             var launchIntent: Intent? = packageManager.getLaunchIntentForPackage("com.anydesk.anydeskandroid")
             if(launchIntent!=null){
@@ -1467,88 +1842,152 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
 
         callUnreadNotificationApi()
 
-        checkForFingerPrint()
+            checkForFingerPrint()
+
+
+
+        //battery check onresume
+        if(Pref.IsAnyPageVisitFromDshboard){
+            val pm = mContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+            var sett = pm.isIgnoringBatteryOptimizations(packageName)
+            if(sett==false){
+                val simpleDialog = Dialog(mContext)
+                simpleDialog.setCancelable(false)
+                simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                simpleDialog.setContentView(R.layout.dialog_ok_logout)
+                val dialogHeader = simpleDialog.findViewById(R.id.dialog_yes_header_TV) as AppCustomTextView
+                if(AppUtils.getDeviceName().contains("MI",ignoreCase = true) || AppUtils.getDeviceName().contains("Redmi",ignoreCase = true) ||
+                    AppUtils.getDeviceName().contains("Poco",ignoreCase = true)){
+                    dialogHeader.text = "Go to Settings -> Apps -> Manage Apps -> FSM App -> Battery Saver -> No restrictions."
+                }else if(AppUtils.getDeviceName().contains("Vivo",ignoreCase = true)){
+                    dialogHeader.text = "Go to Settings -> Battery -> Background Battery Power Consumption Ranking / High Background Power Consumption -> FSM App -> Don't Restrict."
+                }else{
+                    dialogHeader.text = "Go to Settings -> Apps -> FSM App -> Battery -> Unrestricted."
+                }
+                val dialogYes = simpleDialog.findViewById(R.id.tv_dialog_yes) as AppCustomTextView
+                dialogYes.setOnClickListener({ view ->
+                    simpleDialog.cancel()
+                    callLogout()
+                })
+                simpleDialog.show()
+                Handler().postDelayed(Runnable {
+                    val timer = object : CountDownTimer(6 * 1000, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            dialogYes.text = "Logout in "+(millisUntilFinished / 1000).toString()+" seconds..."
+                        }
+                        override fun onFinish() {
+                            simpleDialog.cancel()
+                            callLogout()
+                        }
+                    }.start()
+                }, 1000)
+            }
+        }
+
+
     }
 
 
     fun checkForFingerPrint() {
         try {
-
-            if (checkFingerPrint != null)
-                checkFingerPrint = null
-
-            AppUtils.changeLanguage(this, "en")
-
-            checkFingerPrint = CheckFingerPrint()
-            checkFingerPrint?.checkFingerPrint(this, object : CheckFingerPrint.FingerPrintListener {
-                override fun isFingerPrintSupported(status: Boolean) {
-                    if (status) {
-                        Log.e("DashboardActivity", "========Device support fingerprint===========")
-                    } else {
-                        Log.e("DashboardActivity", "==========Device does not support fingerprint===========")
-                        isFingerPrintSupported = false
+            if(!Pref.isFingerPrintMandatoryForAttendance){
+                AppUtils.changeLanguage(this@DashboardActivity, "en")
+                if (AppUtils.isRevisit!!) {
+                    if (fingerprintDialog != null && fingerprintDialog?.isVisible!!) {
+                        fingerprintDialog?.dismiss()
+                        revisitShop(revisitImage)
+                    }
+                } else {
+                    if (getFragment() != null) {
+                        if (getFragment() is AddAttendanceFragment) {
+                            (getFragment() as AddAttendanceFragment).continueAddAttendance()
+                        } else if (getFragment() is DailyPlanListFragment) {
+                            (getFragment() as DailyPlanListFragment).continueAddAttendance()
+                        } else if (getFragment() is AddShopFragment) {
+                            (getFragment() as AddShopFragment).addShop()
+                        }
                     }
                 }
+                if (getFragment() != null && getFragment() is ChatBotFragment)
+                    AppUtils.changeLanguage(this@DashboardActivity, (getFragment() as ChatBotFragment).language)
+            }else{
 
-                override fun onSuccess(signal: CancellationSignal?) {
+                if (checkFingerPrint != null)
+                    checkFingerPrint = null
 
-                    /*if (signal?.isCanceled!!) {
-                        signal.cancel()
-                    }*/
+                AppUtils.changeLanguage(this, "en")
 
-                    // 15.0 DashboardActivity AppV 4.0.8 Suman    19/04/2023 Dashboard Onresume updation for language 0025874
-                    AppUtils.changeLanguage(this@DashboardActivity, "en")
-                    Log.e("DashboardActivity", "============Fingerprint accepted=============")
-                    // End of Rev 15.0
-
-                    if (AppUtils.isRevisit!!) {
-                        if (fingerprintDialog != null && fingerprintDialog?.isVisible!!) {
-                            fingerprintDialog?.dismiss()
-                            revisitShop(revisitImage)
+                checkFingerPrint = CheckFingerPrint()
+                checkFingerPrint?.checkFingerPrint(this, object : CheckFingerPrint.FingerPrintListener {
+                    override fun isFingerPrintSupported(status: Boolean) {
+                        if (status) {
+                            Log.e("DashboardActivity", "========Device support fingerprint===========")
+                        } else {
+                            Log.e("DashboardActivity", "==========Device does not support fingerprint===========")
+                            isFingerPrintSupported = false
                         }
-                    } else {
-                        if (getFragment() != null) {
-                            if (getFragment() is AddAttendanceFragment) {
-                                (getFragment() as AddAttendanceFragment).continueAddAttendance()
-                            } else if (getFragment() is DailyPlanListFragment) {
-                                (getFragment() as DailyPlanListFragment).continueAddAttendance()
-                            } else if (getFragment() is AddShopFragment) {
-                                (getFragment() as AddShopFragment).addShop()
+                    }
+
+                    override fun onSuccess(signal: CancellationSignal?) {
+
+                        /*if (signal?.isCanceled!!) {
+                            signal.cancel()
+                        }*/
+
+                        // 15.0 DashboardActivity AppV 4.0.8 Suman    19/04/2023 Dashboard Onresume updation for language 0025874
+                        AppUtils.changeLanguage(this@DashboardActivity, "en")
+                        Log.e("DashboardActivity", "============Fingerprint accepted=============")
+                        // End of Rev 15.0
+
+                        if (AppUtils.isRevisit!!) {
+                            if (fingerprintDialog != null && fingerprintDialog?.isVisible!!) {
+                                fingerprintDialog?.dismiss()
+                                revisitShop(revisitImage)
+                            }
+                        } else {
+                            if (getFragment() != null) {
+                                if (getFragment() is AddAttendanceFragment) {
+                                    (getFragment() as AddAttendanceFragment).continueAddAttendance()
+                                } else if (getFragment() is DailyPlanListFragment) {
+                                    (getFragment() as DailyPlanListFragment).continueAddAttendance()
+                                } else if (getFragment() is AddShopFragment) {
+                                    (getFragment() as AddShopFragment).addShop()
+                                }
                             }
                         }
+
+                        if (getFragment() != null && getFragment() is ChatBotFragment)
+                            AppUtils.changeLanguage(this@DashboardActivity, (getFragment() as ChatBotFragment).language)
                     }
 
-                    if (getFragment() != null && getFragment() is ChatBotFragment)
-                        AppUtils.changeLanguage(this@DashboardActivity, (getFragment() as ChatBotFragment).language)
-                }
+                    override fun onError(msg: String) {
+                        Log.e("DashboardActivity", "Fingerprint error=====> $msg")
 
-                override fun onError(msg: String) {
-                    Log.e("DashboardActivity", "Fingerprint error=====> $msg")
+                        // Rev 15.0
+                        if (!Locale.getDefault().language.equals("en", ignoreCase = true))
+                            return
+                        // End of Rev 15.0
+                        when {
+                            msg.equals("Fingerprint operation cancelled.", ignoreCase = true) -> {
+                            }
+                            msg.equals("Fingerprint operation cancelled", ignoreCase = true) -> {
+                            }
+                            msg.equals("Fingerprint operation canceled", ignoreCase = true) -> {
+                            }
+                            msg.equals("Fingerprint operation canceled.", ignoreCase = true) -> {
+                            }
+                            else -> Toaster.msgLong(mContext, msg)
+                        }
 
-                    // Rev 15.0
-                    if (!Locale.getDefault().language.equals("en", ignoreCase = true))
-                        return
-                    // End of Rev 15.0
-                    when {
-                        msg.equals("Fingerprint operation cancelled.", ignoreCase = true) -> {
-                        }
-                        msg.equals("Fingerprint operation cancelled", ignoreCase = true) -> {
-                        }
-                        msg.equals("Fingerprint operation canceled", ignoreCase = true) -> {
-                        }
-                        msg.equals("Fingerprint operation canceled.", ignoreCase = true) -> {
-                        }
-                        else -> Toaster.msgLong(mContext, msg)
+                        if (getFragment() != null && getFragment() is ChatBotFragment)
+                            AppUtils.changeLanguage(this@DashboardActivity, (getFragment() as ChatBotFragment).language)
                     }
 
-                    if (getFragment() != null && getFragment() is ChatBotFragment)
-                        AppUtils.changeLanguage(this@DashboardActivity, (getFragment() as ChatBotFragment).language)
+                })
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    CheckFingerPrint().FingerprintHandler().doAuth()
                 }
-
-            })
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                CheckFingerPrint().FingerprintHandler().doAuth()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1898,6 +2337,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             else if (intent.getStringExtra("TYPE").equals("VIDEO", ignoreCase = true)) {
                 if (getFragment() != null && getFragment() !is MicroLearningListFragment)
                     loadFragment(FragType.MicroLearningListFragment, false, "")
+            }else if (intent.getStringExtra("TYPE").equals("lead_work", ignoreCase = true)) {
+                loadFragment(FragType.LeadFrag, false, "")
             }
             else if (intent.getStringExtra("TYPE").equals("clearData", ignoreCase = true)) {
                 isClearData = true
@@ -3067,6 +3508,7 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             }
             R.id.logout_TV -> {
                 //performLogout()
+                Pref.IsAutoLogoutFromBatteryCheck = false
                 if (Pref.DayEndMarked == false && Pref.IsShowDayEnd == true && Pref.DayStartMarked) {
                     showSnackMessage("Please mark Day End before logout. Thanks.")
                 } else {
@@ -3347,7 +3789,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                 }
             }
             R.id.menu_market_assist_TV ->{
-                loadFragment(FragType.ShopListMarketAssistFrag, false, "")
+                //loadFragment(FragType.ShopListMarketAssistFrag, true, "")
+                loadFragment(FragType.MarketAssistTabFrag, true, "")
             }
             R.id.tv_pending_out_loc_menu -> {
                 if (!Pref.isAddAttendence) {
@@ -3956,7 +4399,11 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             }
 
             R.id.tv_performance_teamMenu -> {
-                loadFragment(FragType.PerformanceAppFragment, false, "")
+                if(AppUtils.isOnline(mContext)){
+                    loadFragment(FragType.PerformanceAppFragment, true, "")
+                }else{
+                    loadFragment(FragType.OwnPerformanceFragment, true, "")
+                }
             }
 
         }
@@ -4246,6 +4693,20 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                     mFragment = PerformanceAppFragment()
                 }
                 setTopBarTitle("Performance Insights")
+                setTopBarVisibility(TopBarConfig.BACK)
+            }
+            FragType.OwnPerformanceFragment -> {
+                if (enableFragGeneration) {
+                    mFragment = OwnPerformanceFragment()
+                }
+                setTopBarTitle("Performance Insights")
+                setTopBarVisibility(TopBarConfig.BACK)
+            }
+            FragType.allPerformanceFrag -> {
+                if (enableFragGeneration) {
+                    mFragment = allPerformanceFrag()
+                }
+                setTopBarTitle("All")
                 setTopBarVisibility(TopBarConfig.BACK)
             }
 
@@ -4845,6 +5306,9 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                             setTopBarVisibility(TopBarConfig.BACK)
                     } else
                         setTopBarVisibility(TopBarConfig.GPS)
+                }
+                if(Pref.IsAutoLogoutFromBatteryCheck){
+                    setTopBarVisibility(TopBarConfig.NONE)
                 }
             }
             FragType.ReimbursementFragment -> {
@@ -5819,18 +6283,30 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                 setTopBarTitle("Market Assistant")
                 setTopBarVisibility(TopBarConfig.BACK)
             }
+            FragType.MarketAssistTabFrag -> {
+                if (enableFragGeneration) {
+                    mFragment = MarketAssistTabFrag()
+                }
+                setTopBarTitle("Market Assistant")
+                setTopBarVisibility(TopBarConfig.BACK)
+            }
             FragType.ShopDtlsMarketAssistFrag -> {
                 if (enableFragGeneration) {
                     mFragment = ShopDtlsMarketAssistFrag.getInstance(initializeObject)
                 }
-                setTopBarTitle("Predictive Analysis")
+                setTopBarTitle("Analysis")
                 setTopBarVisibility(TopBarConfig.BACK)
             }
             FragType.OrderProductCartFrag -> {
                 if (enableFragGeneration) {
                     mFragment = OrderProductCartFrag.getInstance(initializeObject)
                 }
-                setTopBarTitle(getString(R.string.view_cart))
+                if(Pref.savefromOrderOrStock){
+                    setTopBarTitle(getString(R.string.view_cart))
+                }else{
+                    setTopBarTitle(getString(R.string.opening_stock))
+                }
+
                 setTopBarVisibility(TopBarConfig.BACK)
             }
             FragType.NeworderScrCartFragment -> {
@@ -5922,6 +6398,25 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
     private fun setTopBarVisibility(mTopBarConfig: TopBarConfig) {
         tv_noti_count.visibility = View.GONE
         when (mTopBarConfig) {
+            TopBarConfig.NONE ->{
+                iv_home_icon.visibility = View.GONE
+                iv_search_icon.visibility = View.GONE
+                iv_sync_icon.visibility = View.GONE
+                rl_cart.visibility = View.GONE
+                iv_filter_icon.visibility = View.GONE
+                rl_confirm_btn.visibility = View.GONE
+                iv_list_party.visibility = View.GONE
+                logo.visibility = View.GONE
+                iv_map.visibility = View.GONE
+                iv_settings.visibility = View.GONE
+                ic_calendar.visibility = View.GONE
+                ic_chat_bot.visibility = View.GONE
+                iv_cancel_chat.visibility = View.GONE
+                iv_people.visibility = View.GONE
+                iv_scan.visibility = View.GONE
+                iv_view_text.visibility = View.GONE
+                fl_net_status.visibility = View.GONE
+            }
             TopBarConfig.HOME -> {
                 iv_home_icon.visibility = View.VISIBLE
                 iv_search_icon.visibility = View.GONE
@@ -7728,10 +8223,16 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             }
 
         } else if (getFragment() != null && getFragment() is LogoutSyncFragment) {
-            if (!isForceLogout) {
-                super.onBackPressed()
-                if (getFragment() != null && getFragment() is ChatBotFragment)
-                    (getFragment() as ChatBotFragment).update()
+            if(!Pref.IsAutoLogoutFromBatteryCheck){
+                try{
+                    if (!isForceLogout) {
+                        super.onBackPressed()
+                        if (getFragment() != null && getFragment() is ChatBotFragment)
+                            (getFragment() as ChatBotFragment).update()
+                    }
+                }catch (ex:Exception){
+                    ex.printStackTrace()
+                }
             }
         } else if (getFragment() != null && getFragment() is AddPJPLocationFragment) {
 
@@ -8018,6 +8519,12 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             CustomStatic.IsBackFromNewOptiCart=false
             loadFragment(FragType.DashboardFragment, false, DashboardType.Home)
         }
+        // start 24.0 DashboardACtivity v 4.1.6 stock optmization mantis 0026391 20-06-2023 saheli
+        else if(getFragment() != null && getFragment() is StockListFragment && CustomStatic.IsBackFromNewOptiCart){
+            CustomStatic.IsBackFromNewOptiCart=false
+            loadFragment(FragType.DashboardFragment, false, DashboardType.Home)
+        }
+        // end 24.0 DashboardACtivity v 4.1.6 stock optmization mantis 0026391 20-06-2023 saheli
         /*Date 14-09-2021*/
         else if (getFragment() != null && getFragment() is NewOrderScrOrderDetailsFragment) {
             loadFragment(FragType.DashboardFragment, false, DashboardType.Home)
@@ -9906,6 +10413,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                                     else if (intent.getStringExtra("TYPE").equals("VIDEO", ignoreCase = true)) {
                                         if (getFragment() != null && getFragment() !is MicroLearningListFragment)
                                             loadFragment(FragType.MicroLearningListFragment, false, "")
+                                    }else if (intent.getStringExtra("TYPE").equals("lead_work", ignoreCase = true)) {
+                                        loadFragment(FragType.LeadFrag, false, "")
                                     }
                                     else if (intent.getStringExtra("TYPE").equals("clearData", ignoreCase = true)) {
                                         isClearData = true
@@ -10473,6 +10982,9 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                     (getFragment() as MemberShopListFragment).updateAdapter()
                 else if (getFragment() != null && getFragment() is OfflineShopListFragment)
                     (getFragment() as OfflineShopListFragment).updateAdapter()
+                else if(getFragment() != null && getFragment() is MemberAllShopListFragment){
+                    (getFragment() as MemberAllShopListFragment).updateAdapter()
+                }
             }
         }
     }
@@ -11630,7 +12142,7 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
 
         if (Pref.isRevisitCaptureImage) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if(Pref.IsnewleadtypeforRuby && shopNameByID.equals("2")){
+                /*if(Pref.IsnewleadtypeforRuby && shopNameByID.equals("2")){
                     initPermissionCheckRubyCUstomi(shopNameByID)
                 }
                 else if (Pref.IsnewleadtypeforRuby && !shopNameByID.equals("2")){
@@ -11638,7 +12150,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
                 }
                 else{
                     initPermissionCheck()
-                }
+                }*/
+                initPermissionCheck()
             }
             else{
                 if(Pref.IsnewleadtypeforRuby && shopNameByID.equals("2")){
@@ -12083,6 +12596,20 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
 
     private var permissionUtils: PermissionUtils? = null
     private fun initPermissionCheck() {
+
+        //begin mantis id 26741 Storage permission updation Suman 22-08-2023
+        var permissionList = arrayOf<String>( Manifest.permission.CAMERA)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            permissionList += Manifest.permission.READ_MEDIA_IMAGES
+            permissionList += Manifest.permission.READ_MEDIA_AUDIO
+            permissionList += Manifest.permission.READ_MEDIA_VIDEO
+        }else{
+            permissionList += Manifest.permission.WRITE_EXTERNAL_STORAGE
+            permissionList += Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+//end mantis id 26741 Storage permission updation Suman 22-08-2023
+
         permissionUtils = PermissionUtils(mContext as Activity, object : PermissionUtils.OnPermissionListener {
             override fun onPermissionGranted() {
                 if (!isCodeScan)
@@ -12096,10 +12623,24 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             override fun onPermissionNotGranted() {
                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.accept_permission))
             }
-
-        }, arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+// mantis id 26741 Storage permission updation Suman 22-08-2023
+        },permissionList)// arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
     }
     private fun initPermissionCheckRubyCUstomi(shopNameByID: String) {
+
+        //begin mantis id 26741 Storage permission updation Suman 22-08-2023
+        var permissionList = arrayOf<String>( Manifest.permission.CAMERA)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            permissionList += Manifest.permission.READ_MEDIA_IMAGES
+            permissionList += Manifest.permission.READ_MEDIA_AUDIO
+            permissionList += Manifest.permission.READ_MEDIA_VIDEO
+        }else{
+            permissionList += Manifest.permission.WRITE_EXTERNAL_STORAGE
+            permissionList += Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+//end mantis id 26741 Storage permission updation Suman 22-08-2023
+
         permissionUtils = PermissionUtils(mContext as Activity, object : PermissionUtils.OnPermissionListener {
             override fun onPermissionGranted() {
                 if (!isCodeScan)
@@ -12117,8 +12658,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             override fun onPermissionNotGranted() {
                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.accept_permission))
             }
-
-        }, arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+// mantis id 26741 Storage permission updation Suman 22-08-2023
+        },permissionList)// arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
     }
 
     fun captureImage() {
@@ -12760,6 +13301,20 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
     }
 
     private fun initCameraPermissionCheck() {
+
+        //begin mantis id 26741 Storage permission updation Suman 22-08-2023
+        var permissionList = arrayOf<String>( Manifest.permission.CAMERA)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            permissionList += Manifest.permission.READ_MEDIA_IMAGES
+            permissionList += Manifest.permission.READ_MEDIA_AUDIO
+            permissionList += Manifest.permission.READ_MEDIA_VIDEO
+        }else{
+            permissionList += Manifest.permission.WRITE_EXTERNAL_STORAGE
+            permissionList += Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+//end mantis id 26741 Storage permission updation Suman 22-08-2023
+
         permissionUtils = PermissionUtils(this, object : PermissionUtils.OnPermissionListener {
             override fun onPermissionGranted() {
                 captureFrontImage()
@@ -12768,8 +13323,8 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             override fun onPermissionNotGranted() {
                 showSnackMessage(getString(R.string.accept_permission))
             }
-
-        }, arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+// mantis id 26741 Storage permission updation Suman 22-08-2023
+        },permissionList)// arrayOf<String>(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
     }
 
     private fun uploadSelfie(file: File) {
@@ -12827,14 +13382,12 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
         override fun onReceive(context: Context, intent: Intent) {
 
             try {
-
                 if (getFragment() != null) {
                     if (getFragment() is OfflineAllShopListFragment)
                         (getFragment() as OfflineAllShopListFragment).updateUi()
                     else if (getFragment() is OfflineShopListFragment)
                         (getFragment() as OfflineShopListFragment).updateUi()
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -12932,6 +13485,12 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
         }
     }
 
+
+    private val fcm_ACTION_RECEIVER_LEAD = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            logo.startAnimation(AnimationUtils.loadAnimation(mContext, R.anim.shake))
+        }
+    }
 
     // 8.0 DashboardActivity AppV 4.0.6 Suman 23-01-2023  Auto mail from notification flow of quotation 25614
     private fun getQutoDtlsBeforePDF(quto_no: String){
@@ -13363,6 +13922,15 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
             product_tolerance_of_coating.spacingAfter = 6f
             document.add(product_tolerance_of_coating)
 
+            // rev 23.0 DashobaordActivity  AppV 4.1.6  Saheli    19/06/2023 pdf remark field mantis 26139
+
+            val remarks = Paragraph("Remarks                                              :     " + addQuotEditResult.Remarks, font2Big)
+            remarks.alignment = Element.ALIGN_LEFT
+            remarks.spacingAfter = 6f
+            document.add(remarks)
+
+            // end 23.0 rev mantis 26139 PDF remarks field added saheli v DashobaordActivity  AppV 4.1.6 19-06-2023
+
 
             val end = Paragraph("Anticipating healthy business relation with your esteemed organization.", grayFront)
             end.alignment = Element.ALIGN_LEFT
@@ -13554,15 +14122,13 @@ class DashboardActivity : BaseActivity(), View.OnClickListener, BaseNavigation, 
 
             var m = Mail()
             var toArr = arrayOf("")
-            m = Mail("suman.bachar@indusnet.co.in", "dqridqtwsqxatmyt")
-            toArr = arrayOf("suman.bachar@indusnet.co.in","suman.roy@indusnet.co.in")
-            /*if(Pref.IsShowQuotationFooterforEurobond){
+            if(Pref.IsShowQuotationFooterforEurobond){
                 m = Mail("eurobondacp02@gmail.com", "nuqfrpmdjyckkukl")
                 toArr = arrayOf("sales1@eurobondacp.com", "sales@eurobondacp.com")
             }else{
                 m = Mail("suman.bachar@indusnet.co.in", "dqridqtwsqxatmyt")
                 toArr = arrayOf("saheli.bhattacharjee@indusnet.co.in","suman.bachar@indusnet.co.in","suman.roy@indusnet.co.in")
-            }*/
+            }
             Timber.d("quto_mail auto mail sending...")
             m.setTo(toArr)
             m.setFrom("TEAM");

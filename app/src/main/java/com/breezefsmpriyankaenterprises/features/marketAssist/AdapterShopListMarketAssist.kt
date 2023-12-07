@@ -1,23 +1,33 @@
 package com.breezefsmpriyankaenterprises.features.marketAssist
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.Uri
 import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.breezefsmpriyankaenterprises.R
+import com.breezefsmpriyankaenterprises.app.AppDatabase
 import com.breezefsmpriyankaenterprises.app.types.FragType
+import com.breezefsmpriyankaenterprises.app.uiaction.IntentActionable
 import com.breezefsmpriyankaenterprises.features.dashboard.presentation.DashboardActivity
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.cv_row_shop_dtls_ma_contact
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.cv_row_shop_list_ma_beat_root
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.cv_row_shop_list_ma_catagory_retailer_root
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.cv_row_shop_list_ma_party_status_root
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.cv_shop_list_ma_direction
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.ll_row_shop_list_ma_assist
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_addr
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_name
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_name_pref
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_shop_beat
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_shop_catagory_retailer
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_shop_contact
+import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_shop_party_status
 import kotlinx.android.synthetic.main.row_shop_list_market_assist.view.tv_row_shop_list_ma_shop_type
 import java.util.Random
 
@@ -55,6 +65,7 @@ RecyclerView.Adapter<AdapterShopListMarketAssist.ShopListMarketAssistViewHolder>
 
     inner class ShopListMarketAssistViewHolder(itemview:View):RecyclerView.ViewHolder(itemview){
         fun bindItems(){
+
             val m = random.nextInt(9 - 1) + 1
             itemView.tv_row_shop_list_ma_name_pref.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(colorCodeL.get(m))))
 
@@ -74,6 +85,48 @@ RecyclerView.Adapter<AdapterShopListMarketAssist.ShopListMarketAssistViewHolder>
             itemView.ll_row_shop_list_ma_assist.setOnClickListener {
                 (mContext as DashboardActivity).loadFragment(FragType.ShopDtlsMarketAssistFrag, true, mList.get(adapterPosition))
             }
+
+            itemView.cv_shop_list_ma_direction.setOnClickListener {
+                try{
+                    var intentGmap: Intent = Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=${mList.get(adapterPosition).shopLat},${mList.get(adapterPosition).shopLong}&mode=1"))
+                    intentGmap.setPackage("com.google.android.apps.maps")
+                    if(intentGmap.resolveActivity(mContext!!.packageManager) !=null){
+                        mContext!!.startActivity(intentGmap)
+                    }
+                }catch (ex:Exception){
+                    ex.printStackTrace()
+                }
+            }
+
+            itemView.cv_row_shop_dtls_ma_contact.setOnClickListener {
+                IntentActionable.initiatePhoneCall(mContext, mList.get(adapterPosition).owner_contact_number)
+            }
+
+            try{
+                if(mList.get(adapterPosition).party_status_id.equals("")){
+                    itemView.cv_row_shop_list_ma_party_status_root.visibility = View.GONE
+                }else{
+                    var partyStatusN = AppDatabase.getDBInstance()?.partyStatusDao()?.getSingleItem(mList.get(adapterPosition).party_status_id)!!.name
+                    itemView.tv_row_shop_list_ma_shop_party_status.text = partyStatusN
+                    itemView.cv_row_shop_list_ma_party_status_root.visibility = View.VISIBLE
+                }
+            }catch (ex:Exception){
+                ex.printStackTrace()
+                itemView.cv_row_shop_list_ma_party_status_root.visibility = View.GONE
+            }
+            try{
+                if(mList.get(adapterPosition).retailer_id.equals("")){
+                    itemView.cv_row_shop_list_ma_catagory_retailer_root.visibility = View.GONE
+                }else{
+                    var catagoryRetailerN = AppDatabase.getDBInstance()?.retailerDao()?.getSingleItem(mList.get(adapterPosition).retailer_id.toString())!!.name
+                    itemView.tv_row_shop_list_ma_shop_catagory_retailer.text = catagoryRetailerN
+                    itemView.cv_row_shop_list_ma_catagory_retailer_root.visibility = View.VISIBLE
+                }
+            }catch (ex:Exception){
+                ex.printStackTrace()
+                itemView.cv_row_shop_list_ma_catagory_retailer_root.visibility = View.GONE
+            }
+
         }
     }
 

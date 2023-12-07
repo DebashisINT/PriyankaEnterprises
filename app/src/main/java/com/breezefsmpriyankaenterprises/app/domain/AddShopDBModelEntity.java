@@ -306,7 +306,6 @@ public class AddShopDBModelEntity {
         this.GSTN_Number = GSTN_Number;
     }
 
-
     public String getShopOwner_PAN() {
         return ShopOwner_PAN;
     }
@@ -342,6 +341,34 @@ public class AddShopDBModelEntity {
 
     @ColumnInfo(name = "purpose")
     private String purpose = null;
+
+
+    @ColumnInfo(name = "FSSAILicNo")
+    public String FSSAILicNo = null;
+
+    @ColumnInfo(name = "isUpdateAddressFromShopMaster")
+    public Boolean isUpdateAddressFromShopMaster = false;
+
+    public Boolean getUpdateAddressFromShopMaster() {
+        return isUpdateAddressFromShopMaster;
+    }
+
+    public void setUpdateAddressFromShopMaster(Boolean updateAddressFromShopMaster) {
+        isUpdateAddressFromShopMaster = updateAddressFromShopMaster;
+    }
+
+
+
+
+
+
+    public String getFSSAILicNo() {
+        return FSSAILicNo;
+    }
+
+    public void setFSSAILicNo(String FSSAILicNo) {
+        this.FSSAILicNo = FSSAILicNo;
+    }
 
     public String getAlternateNoForCustomer() {
         return alternateNoForCustomer;

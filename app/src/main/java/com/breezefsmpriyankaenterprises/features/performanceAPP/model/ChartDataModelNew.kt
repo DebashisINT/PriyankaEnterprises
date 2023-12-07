@@ -2,6 +2,7 @@ package com.breezefsmpriyankaenterprises.features.performanceAPP.model
 
 import com.breezefsmpriyankaenterprises.app.utils.AppUtils
 import com.breezefsmpriyankaenterprises.features.performanceAPP.PartyWiseDataModel
+import com.github.aachartmodel.aainfographics.aachartcreator.AAChartLineDashStyleType
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartModel
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartType
 import com.github.aachartmodel.aainfographics.aachartcreator.AASeriesElement
@@ -32,7 +33,7 @@ class ChartDataModelNew {
                                     .dataLabels(AADataLabels()
                                             .enabled(true)
                                             .useHTML(true)
-                                            .distance(10)
+                                            .distance(5)
                                             .format("<b></b> {point.percentage:.1f} %"))
                                     .data(arrayOf(
                                             arrayOf("Present", attendP),
