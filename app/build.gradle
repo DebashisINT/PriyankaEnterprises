@@ -21,7 +21,7 @@ android {
     compileSdkVersion 33
     //buildToolsVersion "32.0.0"
     defaultConfig {
-        applicationId "com.breezefsmpriyankaenterprises"
+        applicationId "com.fsmpriyankaenterprises"
         minSdkVersion 26
         targetSdkVersion 33
 //        versionCode 120
@@ -59,7 +59,7 @@ android {
                 def flavor = variant.name
                 def formattedDate = new Date().format('dd-MM-yyyy')
                 def versionName = variant.versionName
-                outputFileName = "breezefsmpriyankaenterprises-Breeze_${flavor}_${formattedDate}_v_${versionName}.apk"
+                outputFileName = "fsmpriyankaenterprises-Breeze_${flavor}_${formattedDate}_v_${versionName}.apk"
             }
         }
     }

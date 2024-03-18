@@ -29,7 +29,7 @@
     </FrameLayout>
 
 
-    <com.breezefsmpriyankaenterprises.widgets.AppCustomTextView
+    <com.fsmpriyankaenterprises.widgets.AppCustomTextView
         android:id="@+id/face_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
